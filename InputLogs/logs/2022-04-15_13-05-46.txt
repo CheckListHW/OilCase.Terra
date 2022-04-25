@@ -1,0 +1,4 @@
+Start transform data
+Data ready
+Start save Excel (.xlsx)
+Export to Excel(.xlsx) is finish save to:C:/Users/KosachevIV/Desktop/props.xlsx

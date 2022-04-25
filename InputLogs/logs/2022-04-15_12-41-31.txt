@@ -1,0 +1,5 @@
+Traceback (most recent call last):
+  File "C:\Users\KosachevIV\PycharmProjects\InputLogs\mvc\View\input_log_view.py", line 58, in __set_log
+    def __set_log(self):
+KeyboardInterrupt
+

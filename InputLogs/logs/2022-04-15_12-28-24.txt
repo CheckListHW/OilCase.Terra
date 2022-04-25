@@ -1,0 +1,12 @@
+Start transform data
+Traceback (most recent call last):
+  File "C:\Users\KosachevIV\PycharmProjects\InputLogs\utils\a_thread.py", line 10, in run
+    self.callback()
+  File "C:\Users\KosachevIV\PycharmProjects\InputLogs\mvc\Model\map_export.py", line 28, in __to_xlsx
+    save_to_excel(self.export(), path)
+  File "C:\Users\KosachevIV\PycharmProjects\InputLogs\mvc\Model\map_export.py", line 61, in export
+    data = edit_lithology_name_in_data(data)
+  File "C:\Users\KosachevIV\PycharmProjects\InputLogs\mvc\Model\map_export.py", line 71, in add_height_above_fwl
+    owc_level = owc[values['Lithology']]
+KeyError: 'Shale|'
+

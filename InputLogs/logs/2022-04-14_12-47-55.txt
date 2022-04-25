@@ -1,0 +1,12 @@
+Start transform data
+Traceback (most recent call last):
+  File "C:\Users\KosachevIV\PycharmProjects\InputLogs\utils\a_thread.py", line 10, in run
+    self.callback()
+  File "C:\Users\KosachevIV\PycharmProjects\InputLogs\mvc\Model\map.py", line 350, in __to_xlsx
+    save_to_excel(self.export(), path)
+  File "C:\Users\KosachevIV\PycharmProjects\InputLogs\mvc\Model\map.py", line 383, in export
+    data = add_log_sample_in_export(data, data_map.core_samples, self.data_map.percent_safe_core)
+  File "C:\Users\KosachevIV\PycharmProjects\InputLogs\mvc\Model\map.py", line 432, in add_log_sample_in_export
+    for name_core_sample, log_name, lithology, null_value in core_samples:
+ValueError: too many values to unpack (expected 4)
+

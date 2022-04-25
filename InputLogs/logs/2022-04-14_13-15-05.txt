@@ -1,0 +1,5 @@
+Start transform data
+Data ready
+Start save TNavigator(.inc)
+Export to TNavigator (.inc) is finish save to:C:/Users/KosachevIV/Desktop/tnav test project/PORO.inc
+Numer of ceil: 313750
