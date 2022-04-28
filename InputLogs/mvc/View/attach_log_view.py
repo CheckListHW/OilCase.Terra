@@ -14,7 +14,7 @@ from utils.create_layout import create_frame, clear_layout
 class AttachLogView(QMainWindow):
     def __init__(self, data_map: Map):
         super(AttachLogView, self).__init__()
-        uic.loadUi(environ['input_logs'] + '/ui/attach_log_window.ui', self)
+        uic.loadUi(environ['project'] + '/ui/attach_log_window.ui', self)
         self.data_map = data_map
         self.attach_layers = set([])
         self.attach_logs = set([])
@@ -52,7 +52,7 @@ class AttachLogView(QMainWindow):
         for main_lay_name in sorted(name_groups.keys()):
             widgets, skip_list = [], set()
 
-            name_lbl = QLabel(main_lay_name)
+            name_lbl = QLabel(main_lay_name.replace('|', ' '))
             name_lbl.setAlignment(Qt.AlignCenter)
             widgets.append(name_lbl)
             for lay_name, log_name in sorted(self.data_map.attach_list(), key=lambda i: i[1]):
@@ -69,21 +69,22 @@ class AttachLogView(QMainWindow):
                 del_btn.setMaximumWidth(30)
                 del_btn.clicked.connect(partial(self.detach_log_list, detach_list))
 
-                lbl = QLabel(f'{cut_along(log_name, "|")}')
-                lbl.setToolTip(f'{log_name if log is None else log.get_text()}')
-                lbl_sub = QLabel(f'{log_name[log_name.index("|"):]}')
+                lbl = QLabel(f"{cut_along(log_name, '|').replace('|', ' ')}")
+                lbl_sub = QLabel(f"{log_name[log_name.index('|'):].replace('|', ' ')}")
                 lbl_sub.setStyleSheet("color:rgb(150, 150, 150);")
 
                 w = QWidget(self)
+                w.setToolTip(f'{log_name if log is None else log.get_text()}')
                 w.setLayout(QHBoxLayout(w))
-                w.layout().addWidget(del_btn)
                 w.layout().addWidget(lbl)
                 w.layout().addWidget(lbl_sub)
+                w.layout().addWidget(del_btn)
                 w.layout().addStretch()
                 widgets.append(w)
 
             list_scroll.add_scroll(widgets)
-        list_scroll.add_scroll([QLabel(name) for name in sorted(['All_logs'] + self.data_map.main_logs_name())])
+        list_scroll.add_scroll([QLabel(name.replace('|', ' '))
+                                for name in sorted(['All_logs'] + self.data_map.main_logs_name())])
         self.update()
 
     def create_frames_layers(self):
@@ -92,7 +93,7 @@ class AttachLogView(QMainWindow):
             layer_check = QCheckBox()
             layer_check.setMaximumWidth(30)
             layer_check.clicked.connect(partial(self.add_layer, layer_check.checkState, name))
-            widgets.append([layer_check, QLabel(name)])
+            widgets.append([layer_check, QLabel(name.replace('|', ' '))])
 
         create_frame(self.layersGridLayout, widgets)
 
@@ -102,7 +103,7 @@ class AttachLogView(QMainWindow):
         for main_log_name in sorted(self.data_map.main_logs_name()):
             widgets = []
 
-            lbl = QLabel(main_log_name)
+            lbl = QLabel(main_log_name.replace('|', ' '))
             lbl.setAlignment(Qt.AlignCenter)
             widgets.append(lbl)
 
@@ -114,7 +115,7 @@ class AttachLogView(QMainWindow):
                 log_check.setMaximumWidth(30)
                 log_check.clicked.connect(partial(self.add_logs, log_check.checkState, log.name))
 
-                lbl = QLabel(log.get_text())
+                lbl = QLabel(log.get_text().replace('|', ' '))
                 lbl.setToolTip(f'{log.get_text()}')
 
                 w = QWidget(self)

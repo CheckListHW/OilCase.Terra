@@ -2,7 +2,7 @@ from os import environ
 from os.path import isfile
 
 from PyQt5 import uic
-from PyQt5.QtGui import QColor
+from PyQt5.QtGui import QColor, QIcon
 from PyQt5.QtWidgets import QMainWindow, QCheckBox, QColorDialog
 
 from InputData.mvc.Controller.draw_shape import Plot3d, DrawVoxels
@@ -13,6 +13,7 @@ from InputData.mvc.View.roof_export_dialog import RoofExportDialog
 from InputData.mvc.View.roof_profile_view import RoofProfileEditWindow
 from InputData.mvc.View.split_edit_view import SplitEditWindow
 from InputData.mvc.View.surface_draw_view import SurfaceEditWindow
+from InputData.resource.strings import main_icon, TitleName
 from InputData.utils.file import FileEdit
 from utils.filedialog import dict_from_json
 
@@ -20,7 +21,11 @@ from utils.filedialog import dict_from_json
 class ShapeEditWindow(QMainWindow):
     def __init__(self):
         super(ShapeEditWindow, self).__init__()
-        uic.loadUi(environ['input_data'] + '/ui/shape_edit.ui', self)
+        uic.loadUi(environ['project'] + '/ui/shape_edit.ui', self)
+
+        self.setWindowTitle(TitleName.ShapeEditWindow)
+        self.setWindowIcon(QIcon(main_icon()))
+        self.hide_frame()
 
         self.map, self.file_edit = Map(), FileEdit(self)
         self.connector = EditorFigureController(self.viewFrame)
@@ -29,36 +34,9 @@ class ShapeEditWindow(QMainWindow):
         self.handlers_connect()
 
         # self.map.attach(ObjectObserver([self.update_all]))
+        self.set_size_info()
         self.update_all()
-        self.zEndSpinbox.setValue(self.map.size.z)
         # self.debug()
-
-    def debug(self):
-        self.edit_layer()
-
-    def load_default_shape(self):
-        base_dict = dict_from_json(environ['input_data'] + '/base.json')
-        if base_dict != {}:
-            self.file_edit.file_used = environ['input_data'] + '/base.json'
-            self.map.load_from_dict(base_dict)
-
-    def save_map(self):
-        self.file_edit.save_file(self.map.get_as_dict())
-
-    def create_map(self):
-        self.change_map(self.file_edit.create_file())
-
-    def open_map(self):
-        self.change_map(self.file_edit.open_file())
-
-    def change_map(self, data_map_path: str):
-        if isfile(data_map_path):
-            self.map.load_from_json(data_map_path)
-            self.update_all()
-
-    def export_roof(self):
-        self.roof_export = RoofExportDialog(self.map)
-        self.roof_export.open()
 
     def handlers_connect(self) -> None:
         self.create_file_action.triggered.connect(self.create_map)
@@ -78,7 +56,6 @@ class ShapeEditWindow(QMainWindow):
         self.addLayerButton.clicked.connect(self.add_layer)
         self.acceptSettingsButton.clicked.connect(self.accept_settings)
         self.editLayerButton.clicked.connect(self.edit_layer)
-        self.redrawButton.clicked.connect(self.voxels.redraw)
         self.updateButton.clicked.connect(self.update_all)
         self.acceptLayersChange.clicked.connect(self.accept_view)
 
@@ -105,13 +82,55 @@ class ShapeEditWindow(QMainWindow):
         self.split_handlers_connect()
         self.speedPlotDrawComboBox.activated.connect(self.change_draw_speed)
 
-        self.funcFrame.hide()
+    def hide_frame(self):
+        frames = [self.visibleFrame, self.propertyFrame, self.editFrame, self.partControlFrame,
+                  self.funcFrame, self.sizeFrame, self.saveLoadShapeFrame]
+        _ = [frame.hide() for frame in frames]
+
+    def show_frame(self):
+        frames = [self.visibleFrame, self.propertyFrame, self.editFrame, self.partControlFrame]
+        _ = [frame.show() for frame in frames]
+
+    def set_size_info(self):
+        self.xEndSpinbox.setValue(self.map.size.x)
+        self.yEndSpinbox.setValue(self.map.size.y)
+        self.zEndSpinbox.setValue(self.map.size.z)
+
+    def debug(self):
+        self.edit_layer()
+
+    def load_default_shape(self):
+        base_dict = dict_from_json(environ['input_data'] + '/base.json')
+        if base_dict != {}:
+            self.file_edit.file_used = environ['input_data'] + '/base.json'
+            self.map.load_from_dict(base_dict)
+
+    def save_map(self):
+        self.file_edit.save_file(self.map.get_as_dict())
+
+    def create_map(self):
+        self.change_map(self.file_edit.create_file())
+
+    def open_map(self):
+        self.change_map(self.file_edit.open_file())
+        self.show_frame()
+
+    def change_map(self, data_map_path: str):
+        if isfile(data_map_path):
+            self.map.load_from_json(data_map_path)
+            self.set_size_info()
+            self.update_all()
+
+    def export_roof(self):
+        self.roof_export = RoofExportDialog(self.map)
+        self.roof_export.open()
 
     def delete_layer(self):
         self.map.delete_layer(figure=self.layersComboBox.currentData())
         self.update_all()
 
     def add_layer(self):
+        self.propertyFrame.show()
         self.map.add_layer()
         self.update_all()
 
@@ -160,9 +179,8 @@ class ShapeEditWindow(QMainWindow):
             cd.show()
 
     def accept_size(self):
-        x_end, y_end = self.xEndSpinbox.value(), self.yEndSpinbox.value()
-        z_start, z_end = self.zStartSpinbox.value(), int(self.zEndSpinbox.text())
-        self.map.size.change_constraints(None, x_end, None, y_end, z_start, z_end)
+        x_end, y_end, z_end = self.xEndSpinbox.value(), self.yEndSpinbox.value(), self.zEndSpinbox.value()
+        self.map.size.change_constraints(None, x_end, None, y_end, None, z_end)
 
     def update_all(self):
         self.accept_size()
@@ -229,11 +247,15 @@ class ShapeEditWindow(QMainWindow):
 
     def edit_layer(self):
         # self.edit_window если оставлять локальной переменной удаляется из памяти!
+        if self.layersComboBox.currentData() is None:
+            return
         edit_text: str = self.editPropertyComboBox.currentText()
-        if edit_text.__contains__('Layer'):
+        if edit_text.__contains__('Surface'):
             self.edit_window = SurfaceEditWindow(shape=self.layersComboBox.currentData())
+            self.visibleFrame.show()
         elif edit_text.__contains__('Split'):
             self.edit_window = SplitEditWindow(self.map)
+            self.partControlFrame.show()
         elif edit_text.__contains__('Roof'):
             self.edit_window = RoofProfileEditWindow(self.map)
         else:
@@ -241,6 +263,7 @@ class ShapeEditWindow(QMainWindow):
         self.edit_window.show()
 
     def accept_settings(self):
+        self.editFrame.show()
         self.layersComboBox.currentData().load_from_dict({'name': self.nameLineEdit.text(),
                                                           'filler': self.fillerCheckBox.isChecked(),
                                                           'priority': self.priority_spinbox.text()})
@@ -249,4 +272,3 @@ class ShapeEditWindow(QMainWindow):
     def accept_filler(self):
         self.layersComboBox.currentData().set_filler(self.fillerCheckBox.isChecked())
         self.update_all()
-

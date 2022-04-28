@@ -1,19 +1,23 @@
 import os
 
 from PyQt5 import uic
+from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QMainWindow, QFileDialog, QComboBox
 
 from InputData.mvc.Controller.edit_plot_modes import ModeStatus
 from InputData.mvc.Controller.qt_matplotlib_connector import EditorSurfaceController
 from InputData.mvc.Model.shape import Shape
 from InputData.mvc.View.surface_choose_view import ViewingLayersWindow
-from InputData.data_resource.strings import Tips
+from InputData.resource.strings import Tips, main_icon, TitleName
 
 
 class SurfaceEditWindow(QMainWindow):
     def __init__(self, single_surface=False, shape: Shape = None):
         super(SurfaceEditWindow, self).__init__()
-        uic.loadUi(os.environ['input_data'] + '/ui/surface_edit.ui', self)
+        uic.loadUi(os.environ['project'] + '/ui/surface_edit.ui', self)
+
+        self.setWindowTitle(TitleName.SurfaceEditWindow)
+        self.setWindowIcon(QIcon(main_icon()))
 
         self.surface_editor = EditorSurfaceController(self.draw_polygon_frame, shape=shape)
         self.view_layers_window = ViewingLayersWindow(self.surface_editor)

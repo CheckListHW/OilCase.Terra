@@ -42,18 +42,17 @@ class ExportLogs:
     def export(self):
         print_log('Start transform data')
         data_map = MapProperty(data=self.data_map.save())
-        print(data_map.owc)
 
-        data = {}
+        coors, data = [(x1, y1) for x1 in range(data_map.max_x + 1) for y1 in range(data_map.max_y + 1)], {}
         for log_name in data_map.main_logs_name_non_expression():
             data_map.change_log_select(log_name)
-            for x, y in [(x1, y1) for x1 in range(data_map.max_x + 1) for y1 in range(data_map.max_y + 1)]:
+            for x, y in coors:
                 column = data_map.get_column_curve(x, y)
-                for x1, n, y1 in (column.intervals if column else []):
+                for x1, lith, y1 in (column.intervals if column else []):
                     for i in range(len(x1)):
                         ceil_name = f'{x}-{y}-{y1[i]}'
                         if not data.get(ceil_name):
-                            data[ceil_name] = {'i': x + 1, 'j': y + 1, 'index': y1[i], 'Lithology': n}
+                            data[ceil_name] = {'i': x + 1, 'j': y + 1, 'index': y1[i], 'Lithology': lith}
                         data[ceil_name][log_name] = x1[i]
 
         data = add_height_above_fwl(data, data_map.owc)
@@ -61,7 +60,6 @@ class ExportLogs:
         data = add_log_expression_in_export(data, data_map.attach_logs)
         data = edit_lithology_name_in_data(data)
         data = add_log_sample_in_export(data, data_map.core_samples, self.data_map.percent_safe_core)
-
         print_log('Data ready')
         return data
 

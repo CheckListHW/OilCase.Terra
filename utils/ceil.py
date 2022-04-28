@@ -1,6 +1,6 @@
 import numpy as np
 
-from InputLogs.resourses.limits import MAX_TREND_RATIO
+from InputLogs.resourse.limits import MAX_TREND_RATIO
 
 
 def ceil(i: float) -> float:

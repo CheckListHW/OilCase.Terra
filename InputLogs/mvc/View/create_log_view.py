@@ -8,22 +8,45 @@ from PyQt5.QtWidgets import QMainWindow, QPushButton, QLabel
 
 from InputLogs.mvc.Model.log_curves import Log, ExpressionLog
 from InputLogs.mvc.Model.map import Map
+from InputLogs.mvc.View.help_veiws import LogCreateHelp
 from InputLogs.mvc.View.trend_view import TrendView
-from utils.create_layout import create_frame, clear_layout
+from InputLogs.resourse.strings import ErrorMessage, Tips
 from InputLogs.utils.file import FileEdit, mass_from_xlsx
+from utils.create_layout import create_frame, clear_layout
 
 
 class CreateLog(QMainWindow):
     def __init__(self, data_map: Map):
         super(CreateLog, self).__init__()
-        uic.loadUi(environ['input_logs'] + '/ui/create_log_window.ui', self)
+        uic.loadUi(environ['project'] + '/ui/create_log_window.ui', self)
         self.data_map = data_map
         self.oil_water_name = ''
         self.handlers()
+        self.add_tips()
         self.update()
+
         self.excelFrame.hide()
 
+    def add_tips(self):
+        self.waterCurveCheckBox.setToolTip(Tips.CreateWaterLog)
+        self.oilCurveCheckBox.setToolTip(Tips.CreateOilLog)
+        self.nameLineEdit.setToolTip(Tips.CreateNameLog)
+
+        self.addIntervalButton.setToolTip(Tips.CurvesAddRangeCurve)
+
+        self.calcFrame.setToolTip(Tips.CreateCalcLog)
+        self.curvesNameComboBox.setToolTip(Tips.CurvesVarLog)
+        self.addCalculatedButton.setToolTip(Tips.CurvesAddCalculatedCurve)
+        # self.setToolTip(Tips.CreateLog)
+
+    def help_show(self):
+        self.help = LogCreateHelp()
+        self.help.show()
+
     def handlers(self):
+        self.actionMain.triggered.connect(self.help_show)
+
+
         self.addIntervalButton.clicked.connect(self.add_log_interval)
         self.chooseLogFile.clicked.connect(self.choose_log_from_xlsx)
         self.oilCurveCheckBox.clicked.connect(partial(self.change_name_oil_water_type, 'O'))
@@ -71,7 +94,13 @@ class CreateLog(QMainWindow):
         log_name = self.get_log_name()
         if len(log_name) > 0:
             min_value, max_value = self.minValueSpinBox.value(), self.maxValueSpinBox.value()
-
+            label_change_color(self.expressionValidLabel, 'red')
+            if min_value >= max_value:
+                self.expressionValidLabel.setText(ErrorMessage.MinMaxValid)
+                return
+            if len(log_name) <= 1:
+                self.expressionValidLabel.setText(ErrorMessage.EmptyName)
+                return
             self.data_map.add_logs(Log(name=log_name, min=min_value, max=max_value))
             self.update()
 

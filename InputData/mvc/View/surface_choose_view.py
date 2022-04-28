@@ -2,11 +2,13 @@ from os import environ
 from typing import List
 
 from PyQt5 import QtGui, uic
+from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QMainWindow, QFrame
 
 from InputData.mvc.Controller.qt_matplotlib_connector import EditorSurfaceControllerTight, EditorSurfaceController
 from InputData.mvc.Model.surface import Surface
 from InputData.mvc.View.single_surface_view import SingleLayWidget
+from InputData.resource.strings import main_icon, TitleName
 
 
 class ViewingLayersWindow(QMainWindow):
@@ -14,9 +16,13 @@ class ViewingLayersWindow(QMainWindow):
 
     def __init__(self, surface_editor: EditorSurfaceController):
         super(ViewingLayersWindow, self).__init__()
-        uic.loadUi(environ['input_data'] + '/ui/surface_choose.ui', self)
+        uic.loadUi(environ['project'] + '/ui/surface_choose.ui', self)
+
+        self.setWindowTitle(TitleName.ViewingLayersWindow)
+        self.setWindowIcon(QIcon(main_icon()))
+
         # добавляется для того чтобы сборщик мусора не удалял объекты
-        self.aaa = []
+        self.keep_in_memory = []
         self.surface_editor = surface_editor
 
         self.get_surfaces, self.frames, self.size = None, list(), 200
@@ -45,7 +51,7 @@ class ViewingLayersWindow(QMainWindow):
         frame.setMinimumSize(self.size, self.size)
         frame.setMaximumSize(self.size, self.size)
         self.frames.append(frame)
-        self.aaa.append(frame)
+        self.keep_in_memory.append(frame)
         return frame.viewFrame
 
     def edit_layer(self, index: int, edit_method: str = 'add', **kwargs):

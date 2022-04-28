@@ -1,19 +1,25 @@
 import os
 
 from PyQt5 import uic
+from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QMainWindow
 
 from InputData.mvc.Controller.qt_matplotlib_connector import EditorSplitController
 from InputData.mvc.Model.map import Map
+from InputData.resource.strings import main_icon, TitleName
 
 
 class SplitEditWindow(QMainWindow):
     def __init__(self, map: Map):
         super(SplitEditWindow, self).__init__()
-        uic.loadUi(os.environ['input_data'] + '/ui/split_edit.ui', self)
+        uic.loadUi(os.environ['project'] + '/ui/split_edit.ui', self)
+
+        self.setWindowTitle(TitleName.SplitEditWindow)
+        self.setWindowIcon(QIcon(main_icon()))
 
         self.splits = map.splits
         self.surface_editor = EditorSplitController(map, parent=self.draw_polygon_frame)
+
 
         self.update_info()
         self.button_connect()

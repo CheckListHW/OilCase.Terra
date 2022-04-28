@@ -27,8 +27,9 @@ class ListScrollWidgets(QScrollArea):
             widget.setFixedHeight(40)
             widgets_frame.layout().addWidget(widget)
 
-        widgets_frame.layout().setContentsMargins(0, 0, 0, 0)
+        widgets_frame.layout().setContentsMargins(9, 0, 3, 0)
         widgets_frame.setFixedWidth(200)
         widgets_frame.layout().addStretch()
 
         self.scroll_layout.addWidget(widgets_frame)
+        self.scroll.layout().addStretch()

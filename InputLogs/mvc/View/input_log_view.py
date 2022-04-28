@@ -5,9 +5,11 @@ from os import environ
 from threading import Thread
 
 from PyQt5 import uic
+from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QMainWindow, QPushButton
 
 from InputLogs.mvc.View.setiings_view import SettingsView
+from InputLogs.resourse.strings import TitleName, main_icon
 from utils.log.log_file import read_log
 from InputLogs.mvc.Controller.plot_controller import PlotController, PlotMapController, PlotLogController
 from InputLogs.mvc.Model.map import Map
@@ -30,7 +32,11 @@ class InputLogController:
 class InputLogView(QMainWindow):
     def __init__(self):
         super(InputLogView, self).__init__()
-        uic.loadUi(environ['input_logs'] + '/ui/log_input_form.ui', self)
+        uic.loadUi(environ['project'] + '/ui/log_input_form.ui', self)
+
+        self.setWindowTitle(TitleName.InputLogView)
+        self.setWindowIcon(QIcon(main_icon()))
+
         self.text_log = ''
         self.file_edit = FileEdit(parent=self)
         self.data_map = Map()
@@ -48,10 +54,13 @@ class InputLogView(QMainWindow):
         x.start()
         Thread(target=self.update_log).start()
 
+    def hide_frame(self):
+        self.toolsWidget.hide()
+
     def update_log(self):
         x = QPushButton()
         x.clicked.connect(self.__set_log)
-        while self.isVisible():
+        while True:
             time.sleep(3)
             x.click()
 
@@ -132,6 +141,7 @@ class InputLogView(QMainWindow):
         self.file_edit.save_file(self.data_map.save())
 
     def open_file(self):
+        self.toolsWidget.show()
         path = self.file_edit.open_file()
         self.data_map.load_map(path)
         self.update_info()

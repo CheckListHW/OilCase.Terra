@@ -8,5 +8,4 @@ class Map(MapProperty):
 
     def __init__(self, path: str = None, data: dict = None):
         super(Map, self).__init__(path, data)
-
         self.export = ExportLogs(self)

@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>319</width>
-    <height>600</height>
+    <width>246</width>
+    <height>515</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -15,6 +15,21 @@
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QVBoxLayout" name="verticalLayout">
+    <property name="spacing">
+     <number>7</number>
+    </property>
+    <property name="leftMargin">
+     <number>10</number>
+    </property>
+    <property name="topMargin">
+     <number>10</number>
+    </property>
+    <property name="rightMargin">
+     <number>10</number>
+    </property>
+    <property name="bottomMargin">
+     <number>10</number>
+    </property>
     <item>
      <widget class="QFrame" name="frame_3">
       <property name="frameShape">
@@ -69,8 +84,8 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>299</width>
-         <height>161</height>
+         <width>224</width>
+         <height>173</height>
         </rect>
        </property>
        <layout class="QVBoxLayout" name="verticalLayout_2">
@@ -95,16 +110,15 @@
      </widget>
     </item>
     <item>
-     <widget class="QLabel" name="messageLabel">
-      <property name="text">
-       <string/>
-      </property>
-     </widget>
-    </item>
-    <item>
      <widget class="QPushButton" name="addOwcButton">
+      <property name="maximumSize">
+       <size>
+        <width>16777215</width>
+        <height>16777215</height>
+       </size>
+      </property>
       <property name="text">
-       <string>Add</string>
+       <string>➕</string>
       </property>
      </widget>
     </item>
@@ -118,8 +132,8 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>299</width>
-         <height>276</height>
+         <width>224</width>
+         <height>173</height>
         </rect>
        </property>
        <layout class="QVBoxLayout" name="verticalLayout_3">
@@ -143,6 +157,13 @@
       </widget>
      </widget>
     </item>
+    <item>
+     <widget class="QLabel" name="messageLabel">
+      <property name="text">
+       <string/>
+      </property>
+     </widget>
+    </item>
    </layout>
   </widget>
   <widget class="QMenuBar" name="menubar">
@@ -150,7 +171,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>319</width>
+     <width>246</width>
      <height>21</height>
     </rect>
    </property>

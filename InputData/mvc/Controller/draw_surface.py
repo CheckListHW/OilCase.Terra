@@ -12,7 +12,7 @@ from InputData.mvc.Model.surface import Surface
 from utils.geometry.nearst_dot import nearst_dot_index, nearst_line_index, dot_to_border
 # x - width, y - length
 from utils.geometry.simplify_line import simplify_line, polyline
-from InputData.data_resource.digit_value import Limits
+from InputData.resource.digit_value import Limits
 
 
 def draw_polygon(x, y, ax, size=1, color='brown'):

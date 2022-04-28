@@ -11,7 +11,7 @@ from utils.create_layout import create_frame, clear_layout
 class OwcEditView(QMainWindow):
     def __init__(self, data_map: Map):
         super(OwcEditView, self).__init__()
-        uic.loadUi(environ['input_logs'] + '/ui/owc_edit_window.ui', self)
+        uic.loadUi(environ['project'] + '/ui/owc_edit_window.ui', self)
         self.data_map = data_map
         self.main_layer_name = ''
         self.handlers()

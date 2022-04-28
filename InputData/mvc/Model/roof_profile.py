@@ -3,7 +3,7 @@ from scipy.interpolate import griddata
 
 from utils.json_in_out import JsonInOut
 from utils.geometry.nearst_dot import nearst_dot_index
-from InputData.data_resource.digit_value import Limits
+from InputData.resource.digit_value import Limits
 
 
 class RoofPoint(JsonInOut):

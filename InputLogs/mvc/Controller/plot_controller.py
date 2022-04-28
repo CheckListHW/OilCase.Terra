@@ -13,7 +13,7 @@ from matplotlib.ticker import MultipleLocator, AutoMinorLocator
 
 from InputLogs.mvc.Model.log_curves import Log
 from InputLogs.mvc.Model.map import Map
-from InputLogs.resourses.limits import MAX_TREND_RATIO
+from InputLogs.resourse.limits import MAX_TREND_RATIO
 from utils.gisaug.augmentations import Stretch, DropRandomPoints
 
 

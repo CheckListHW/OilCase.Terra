@@ -1,3 +1,0 @@
-Start transform data
-Data ready
-Start save Excel (.xlsx)

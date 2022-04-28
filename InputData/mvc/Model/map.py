@@ -183,7 +183,6 @@ class ExportMap:
     def export(self) -> dict:
         self.__init__(self.map)
         for shape in self.map.get_visible_shapes():
-            print(f'{shape.name}|{shape.sub_name}')
             data = self.correction_strong_mixing(self.calc_polygon_in_draw(shape), shape.size.x, shape.size.y)
             self.map.data[f'{shape.name}|{shape.sub_name}'] = \
                 dict_update(self.map.data.get(shape.name), transform_data(data))
@@ -220,7 +219,7 @@ class ExportMap:
                 if data_column[i]:
                     convert_val.append(i)
                 if not data_column[i]:
-                    if len(convert_val) < 6:
+                    if len(convert_val) < 4:
                         for j in convert_val:
                             self.repeat[f'{x1}-{y1}-{j}'] = None
                             data[x1][y1][j] = False
@@ -266,7 +265,7 @@ class ExportRoof(ExportMap):
 
         shape = Shape(self.map.size)
         shape.parts_property = parts_property
-        shape.add_layer(get_square_surface(self.map.size, max_z, 24.99))
+        shape.add_layer(get_square_surface(self.map.size, min_z, 24.99))
         shapes = shape.splitting_shape(self.map.splits)
 
         points = {}

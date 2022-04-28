@@ -1,4 +1,0 @@
-Start transform data
-Poro_NPHI|Sand| ; dict_keys(['i', 'j', 'index', 'Lithology', 'Poro_NPHI', 'GR', 'NPHI', 'SW', 'RDEP', 'RHOB', 'Perm', 'Poro_RHOB']) ; Sand|_b|W|
-Data ready
-Start save Excel (.xlsx)

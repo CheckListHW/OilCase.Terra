@@ -3,7 +3,7 @@ from __future__ import annotations
 import random
 from typing import List, Optional
 
-from InputData.data_resource.digit_value import Limits
+from InputData.resource.digit_value import Limits
 from InputData.mvc.Model.line_segment import LineSegment
 from InputData.mvc.Model.point import Point
 from InputData.mvc.Model.size import Size
@@ -54,7 +54,7 @@ class ShapeProperty(Subject):
         self._offset, self.x_offset, self.y_offset = 0, 0, 0
         self.visible, self._alpha, self._priority = True, 0.9, 100
         self.presence_intermediate_layers = False
-        self.name: str = 'layer 1'
+        self.name: str = 'Enter a layer name'
         self.sub_name = ''
         self._color: (int, int, int) = (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
         self.size = size

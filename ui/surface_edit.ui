@@ -39,7 +39,7 @@
           </size>
          </property>
          <property name="styleSheet">
-          <string notr="true">background-color:rgb(202, 255, 192)</string>
+          <string notr="true"/>
          </property>
          <property name="frameShape">
           <enum>QFrame::StyledPanel</enum>
@@ -91,7 +91,7 @@
              </font>
             </property>
             <property name="text">
-             <string>draw curve</string>
+             <string>Draw curve</string>
             </property>
             <property name="textFormat">
              <enum>Qt::AutoText</enum>

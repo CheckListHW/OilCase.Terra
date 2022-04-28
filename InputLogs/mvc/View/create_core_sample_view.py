@@ -13,7 +13,7 @@ from utils.create_layout import create_frame
 class CreateCoreSampleView(QMainWindow):
     def __init__(self, data_map: Map):
         super(CreateCoreSampleView, self).__init__()
-        uic.loadUi(environ['input_logs'] + '/ui/create_core_sample_window.ui', self)
+        uic.loadUi(environ['project'] + '/ui/create_core_sample_window.ui', self)
         self.data_map = data_map
         self.before_start()
         self.handlers()

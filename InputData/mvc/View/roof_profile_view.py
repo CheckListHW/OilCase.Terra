@@ -2,18 +2,23 @@ import os
 from functools import partial
 
 from PyQt5 import uic
+from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QMainWindow, QSpinBox
 
 from InputData.mvc.Controller.edit_plot_modes import ModeStatus
 from InputData.mvc.Controller.qt_matplotlib_connector import EditorRoofProfileController
 from InputData.mvc.Model.map import Map
 from InputData.mvc.View.surface_choose_view import ViewingLayersWindow
+from InputData.resource.strings import main_icon, TitleName
 
 
 class RoofProfileEditWindow(QMainWindow):
     def __init__(self, map_value: Map):
         super(RoofProfileEditWindow, self).__init__()
-        uic.loadUi(os.environ['input_data'] + '/ui/roof_profile_edit.ui', self)
+        uic.loadUi(os.environ['project'] + '/ui/roof_profile_edit.ui', self)
+
+        self.setWindowTitle(TitleName.RoofProfileEditWindow)
+        self.setWindowIcon(QIcon(main_icon()))
 
         self.map = map_value
         self.surface_editor = EditorRoofProfileController(map=self.map, parent=self.draw_polygon_frame)
@@ -47,7 +52,9 @@ class RoofProfileEditWindow(QMainWindow):
         self.surface_editor.update_plot()
 
     def change_height(self):
-        if self.surface_editor.plot.nearst_dot_index is not None:
+        if self.surface_editor.plot.nearst_dot_index is None:
+            return
+        if len(self.map.roof_profile.points) > self.surface_editor.plot.nearst_dot_index:
             self.map.roof_profile.points[self.surface_editor.plot.nearst_dot_index].z \
                 = self.heightSpinBox.value()
         self.surface_editor.update_plot()

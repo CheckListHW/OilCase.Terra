@@ -2,15 +2,18 @@ import os
 import sys
 from traceback import format_exception
 
+from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QHBoxLayout
 
 from InputData.mvc.View.shapes_edit_view import ShapeEditWindow
+from InputData.resource.strings import main_icon
+from InputLogs.mvc.Model.map import Map
 from InputLogs.mvc.View.input_log_view import InputLogView
 from utils.log.log_file import print_log
 
-os.environ['input_data'] = os.getcwd()+'/InputData'
-os.environ['input_logs'] = os.getcwd()+'/Inputlogs'
-
+os.environ['input_data'] = os.getcwd() + '/InputData'
+os.environ['input_logs'] = os.getcwd() + '/Inputlogs'
+os.environ['project'] = os.getcwd()
 
 log_out: ()
 
@@ -28,8 +31,8 @@ class InputDataLogs(QWidget):
         super(InputDataLogs, self).__init__()
         self.log_window = InputLogView()
         self.data_window = ShapeEditWindow()
-        global log_out
-        log_out = self.log_window
+
+        self.log_out = self.log_window.set_log
 
         btn_logs = QPushButton('InputLogs')
         btn_data = QPushButton('InputData')
@@ -39,6 +42,8 @@ class InputDataLogs(QWidget):
         self.setLayout(QHBoxLayout())
         self.layout().addWidget(btn_data)
         self.layout().addWidget(btn_logs)
+        self.setWindowTitle('Input')
+        self.setWindowIcon(QIcon(main_icon()))
         self.setFixedSize(300, 70)
 
     def open_logs(self):
@@ -47,9 +52,18 @@ class InputDataLogs(QWidget):
     def open_data(self):
         self.data_window.show()
 
+    def closeEvent(self, a0) -> None:
+        os._exit(1)
+
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
+    sys.excepthook = console_excepthook
     window = InputDataLogs()
     window.show()
+    log_out = window.log_out
     sys.exit(app.exec_())
+
+# if __name__ == '__main__':
+#     x = Map(path='C:/Users/KosachevIV/PycharmProjects/Input/InputLogs/base.json')
+#     x.export.export()

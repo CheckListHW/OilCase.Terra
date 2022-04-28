@@ -2,7 +2,6 @@ import math
 
 import numpy as np
 from matplotlib import pyplot as plt
-from matplotlib.axes import Axes
 
 from InputData.mvc.Controller.qt_matplotlib_connector import EditorController
 from InputData.mvc.Model.map import Map
@@ -54,21 +53,22 @@ class DrawVoxels:
 
     def draw_plot(self):
         self.plot3d.ax.clear()
-        shapes = self.map.get_visible_shapes()
+        shapes: [Shape] = self.map.get_visible_shapes()
 
         self.map.data = {}
-        for fig in shapes:
+        for shape in shapes:
             # roof_profile_offset
             r_p_o = self.map.roof_profile.get_x_y_offset(base=max(self.map.size.x, self.map.size.y))
-            r_p_o = [[0 if fig.filler else j for j in i] for i in r_p_o]
+            r_p_o = [[0 if shape.filler else j for j in i] for i in r_p_o]
 
             # include_not_primary
-            i_n_t = True if self.map.draw_speed == 'Simple' else False
+            i_n_t, _ = (True, shape.calc_intermediate_layers()) \
+                if self.map.draw_speed == 'Simple' else (False, None)
 
-            main_layers = [lay for lay in fig.layers if (lay.primary or i_n_t) and lay.x != []]
+            main_layers = [lay for lay in shape.layers if (lay.primary or i_n_t) and lay.x != []]
 
             layers, layers_x, layers_y = [], [], []
-            value = max([len(lay.scalable_curve[0]) for lay in main_layers])
+            value = max([len(lay.scalable_curve[0]) for lay in main_layers] + [0])
             for lay in main_layers:
                 a, b = simplify_line(lay.scalable_curve[0], lay.scalable_curve[1], value)
                 layers_x.append(a)
@@ -78,21 +78,21 @@ class DrawVoxels:
             if not layers_x:
                 continue
 
-            ceil: () = lambda i, m: int(sorted([0, i, m-1])[1])
+            ceil: () = lambda i, m: int(sorted([0, i, m - 1])[1])
 
             layers_z = [[lay[0] + r_p_o[ceil(x1, self.map.size.x)][ceil(y1, self.map.size.y)]
                          for x1, y1 in zip(lay[1], lay[2])] for lay in layers]
 
             layers_x, layers_y, layers_z = data_for_plot_3d(layers_x, layers_y, layers_z)
             x, y, z = np.array(layers_x), np.array(layers_y), np.array(layers_z)
-            color = '#%02x%02x%02x' % (fig.color[0], fig.color[1], fig.color[2])
-            self.plot3d.ax.plot_surface(x, y, z, color=color, alpha=fig.alpha)
+            color = '#%02x%02x%02x' % (shape.color[0], shape.color[1], shape.color[2])
+            self.plot3d.ax.plot_surface(x, y, z, color=color, alpha=shape.alpha)
 
     def draw_all_polygon(self):
         self.plot3d.ax.clear()
         self.repeat, self.map.data, main_data, self.all_polygon = {}, {}, [], np.zeros([1, 1, 1], dtype=bool)
         for shape in self.map.get_visible_shapes():
-            # shape.calc_intermediate_layers()
+            shape.calc_intermediate_layers()
             data = self.calc_polygon_in_draw(shape)
             self.map.data[f'{shape.name}|{shape.sub_name}'] = dict_update(self.map.data.get(shape.name),
                                                                           transform_data(data))

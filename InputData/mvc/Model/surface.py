@@ -7,7 +7,7 @@ from InputData.mvc.Model.line_segment import LineSegment
 from InputData.mvc.Model.point import Point
 from InputData.mvc.Model.size import Size
 from utils.recursive_extraction_of_list import recursive_extraction
-from InputData.data_resource.digit_value import Limits
+from InputData.resource.digit_value import Limits
 
 
 class SurfacePropertyMemento:

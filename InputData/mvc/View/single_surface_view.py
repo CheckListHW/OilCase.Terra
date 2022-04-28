@@ -8,7 +8,7 @@ from PyQt5.QtWidgets import QWidget
 class SingleLayWidget(QWidget):
     def __init__(self, index: int, z: int = 0, edit_lay_handler: Callable = None):
         super(SingleLayWidget, self).__init__()
-        uic.loadUi(environ['input_data']+'/ui/mini_surface.ui', self)
+        uic.loadUi(environ['project']+'/ui/mini_surface.ui', self)
         self.edit_lay: () = edit_lay_handler
         self.index = index
         self.heightLineEdit.setText(str(z))

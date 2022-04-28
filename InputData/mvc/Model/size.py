@@ -46,14 +46,17 @@ class Size(JsonInOut):
 
     @property
     def x(self) -> int:
+        return 25
         return int(abs(self.x_constraints.start - self.x_constraints.end))
 
     @property
     def y(self):
+        return 25
         return int(abs(self.y_constraints.start - self.y_constraints.end))
 
     @property
     def z(self):
+        return 500
         return int(abs(self.z_constraints.start - self.z_constraints.end))
 
     def max(self):
