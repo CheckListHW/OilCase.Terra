@@ -3,11 +3,13 @@ from os import environ
 
 from PyQt5 import uic
 from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QMainWindow, QLabel, QCheckBox, QPushButton, QWidget, QHBoxLayout
 
 from InputLogs.mvc.Model.map import Map
 from InputLogs.mvc.Model.map_property import cut_along
 from InputLogs.mvc.View.list_scroll_widget import ListScrollWidgets
+from InputLogs.resourse.strings import main_icon
 from utils.create_layout import create_frame, clear_layout
 
 
@@ -15,6 +17,9 @@ class AttachLogView(QMainWindow):
     def __init__(self, data_map: Map):
         super(AttachLogView, self).__init__()
         uic.loadUi(environ['project'] + '/ui/attach_log_window.ui', self)
+
+        self.setWindowIcon(QIcon(main_icon()))
+
         self.data_map = data_map
         self.attach_layers = set([])
         self.attach_logs = set([])

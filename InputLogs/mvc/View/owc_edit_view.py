@@ -2,24 +2,31 @@ from functools import partial
 from os import environ
 
 from PyQt5 import uic
+from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QMainWindow, QFrame, QHBoxLayout, QLabel, QSpinBox, QPushButton
 
 from InputLogs.mvc.Model.map import Map
+from InputLogs.resourse.strings import main_icon
 from utils.create_layout import create_frame, clear_layout
 
 
 class OwcEditView(QMainWindow):
     def __init__(self, data_map: Map):
         super(OwcEditView, self).__init__()
+
         uic.loadUi(environ['project'] + '/ui/owc_edit_window.ui', self)
+        self.setWindowIcon(QIcon(main_icon()))
+
         self.data_map = data_map
         self.main_layer_name = ''
         self.handlers()
         self.update_info()
 
     def handlers(self):
-        self.layerChooseComboBox.activated.connect(self.select_layer)
+        self.addOwcButton.hide()
         self.addOwcButton.clicked.connect(self.update_info)
+
+        self.layerChooseComboBox.activated.connect(self.select_layer)
 
     def update_info(self):
         self.layerChooseComboBox.clear()
@@ -31,7 +38,11 @@ class OwcEditView(QMainWindow):
         self.owc_info_update()
 
     def set_owc(self, name: str, value: ()):
-        self.data_map.set_owc(name, value())
+        owc_level = value()
+        if owc_level:
+            self.data_map.set_owc(name, owc_level)
+        else:
+            self.data_map.pop_owc(name)
         self.owc_info_update()
 
     def pop_owc(self, name: str):

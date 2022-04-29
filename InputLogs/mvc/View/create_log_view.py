@@ -4,7 +4,7 @@ from os import environ
 from PyQt5 import uic, QtGui
 from PyQt5.QtCore import QRegExp
 from PyQt5.QtGui import QRegExpValidator
-from PyQt5.QtWidgets import QMainWindow, QPushButton, QLabel
+from PyQt5.QtWidgets import QMainWindow, QPushButton, QLabel, QRadioButton
 
 from InputLogs.mvc.Model.log_curves import Log, ExpressionLog
 from InputLogs.mvc.Model.map import Map
@@ -26,6 +26,8 @@ class CreateLog(QMainWindow):
         self.update()
 
         self.excelFrame.hide()
+        self.rangeFrame.hide()
+        self.calcFrame.hide()
 
     def add_tips(self):
         self.waterCurveCheckBox.setToolTip(Tips.CreateWaterLog)
@@ -46,11 +48,14 @@ class CreateLog(QMainWindow):
     def handlers(self):
         self.actionMain.triggered.connect(self.help_show)
 
-
         self.addIntervalButton.clicked.connect(self.add_log_interval)
         self.chooseLogFile.clicked.connect(self.choose_log_from_xlsx)
         self.oilCurveCheckBox.clicked.connect(partial(self.change_name_oil_water_type, 'O'))
         self.waterCurveCheckBox.clicked.connect(partial(self.change_name_oil_water_type, 'W'))
+
+        self.rangeRadioButton: QRadioButton = self.rangeRadioButton
+        self.rangeRadioButton.clicked.connect(self.type_curve_change)
+        self.calculatedRadioButton.clicked.connect(self.type_curve_change)
 
         input_validator = QRegExpValidator(QRegExp("[^| ]{1,}"), self.nameLineEdit)
         self.nameLineEdit.setValidator(input_validator)
@@ -61,6 +66,14 @@ class CreateLog(QMainWindow):
         self.addCalculatedButton.clicked.connect(self.add_calculated_curve)
 
         self.curvesNameComboBox.textActivated.connect(self.add_curves_to_formula)
+
+    def type_curve_change(self):
+        if self.rangeRadioButton.isChecked():
+            self.rangeFrame.show()
+            self.calcFrame.hide()
+        else:
+            self.calcFrame.show()
+            self.rangeFrame.hide()
 
     def add_curves_to_formula(self):
         self.formulaLineEdit.setText(self.formulaLineEdit.text() + '{' + self.curvesNameComboBox.currentText() + '}')

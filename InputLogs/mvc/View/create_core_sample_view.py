@@ -3,10 +3,12 @@ from os import environ
 from typing import Union
 
 from PyQt5 import uic
+from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QMainWindow, QLineEdit, QDoubleSpinBox, QComboBox, QLabel, QPushButton
 
 from InputLogs.mvc.Model.map import Map
 from InputLogs.mvc.Model.map_property import CoreSample
+from InputLogs.resourse.strings import main_icon
 from utils.create_layout import create_frame
 
 
@@ -14,10 +16,17 @@ class CreateCoreSampleView(QMainWindow):
     def __init__(self, data_map: Map):
         super(CreateCoreSampleView, self).__init__()
         uic.loadUi(environ['project'] + '/ui/create_core_sample_window.ui', self)
+
+        self.setWindowIcon(QIcon(main_icon()))
+
         self.data_map = data_map
         self.before_start()
         self.handlers()
         self.update_info()
+
+    def handlers(self):
+        self.addButton.clicked.connect(self.add_core_sample)
+        self.percentSafeSpinBox.valueChanged.connect(self.percent_safe_change)
 
     def before_start(self):
         for log_name in self.data_map.main_logs_name():
@@ -25,15 +34,6 @@ class CreateCoreSampleView(QMainWindow):
 
         for lithology_name in self.data_map.main_body_names():
             self.lithologyComboBox.addItem(lithology_name.replace('|', ''))
-
-    def handlers(self):
-        self.lithologyComboBox: QComboBox = self.lithologyComboBox
-        self.logComboBox: QComboBox = self.logComboBox
-        self.nameLineEdit: QLineEdit = self.nameLineEdit
-        self.nullValueLineEdit: QLineEdit = self.nullValueLineEdit
-        self.addButton.clicked.connect(self.add_core_sample)
-        self.percentSafeSpinBox: QDoubleSpinBox = self.percentSafeSpinBox
-        self.percentSafeSpinBox.valueChanged.connect(self.percent_safe_change)
 
     def percent_safe_change(self):
         self.data_map.percent_safe_core = self.percentSafeSpinBox.value()
