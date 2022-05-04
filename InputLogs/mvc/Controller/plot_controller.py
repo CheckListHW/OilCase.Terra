@@ -2,7 +2,6 @@ import math
 import random
 from typing import Optional
 
-import numpy as np
 from PyQt5.QtWidgets import QGridLayout
 from matplotlib.axes import Axes
 from matplotlib.backend_bases import MouseEvent, MouseButton
@@ -14,7 +13,6 @@ from matplotlib.ticker import MultipleLocator, AutoMinorLocator
 from InputLogs.mvc.Model.log_curves import Log
 from InputLogs.mvc.Model.map import Map
 from InputLogs.resourse.limits import MAX_TREND_RATIO
-from utils.gisaug.augmentations import Stretch, DropRandomPoints
 
 
 def draw_polygon(x: float, y: float, ax: Axes, size=1.0, color: str = None):
@@ -162,6 +160,8 @@ class PlotLogController(PlotController):
         self.draw_log(data_map, self.x, self.y)
 
     def draw_log(self, data_map: Map, x: float, y: float):
+        self.ax.set_ylim(0, 500)
+
         self.clear_plot()
         self.plot_prepare(None, data_map.max_z)
         self.x, self.y = int(x), int(y)
@@ -184,7 +184,9 @@ class PlotLogController(PlotController):
                 pre_max_y = max_y
 
             self.ax.set_xlim(min_axes_x, max_axes_x)
+
+            curve_min = min([min(y) for _, _, y in col_interval.intervals])
+            curve_max = max([max(y) for _, _, y in col_interval.intervals])
+            self.ax.set_ylim(curve_min, curve_max)
             self.ax.invert_yaxis()
         self.draw()
-
-

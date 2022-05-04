@@ -18,13 +18,13 @@ class MyTimer:
         MyTimer.pre_time = time.time()
 
     @staticmethod
-    def chek_start(index: str = 'a'):
+    def check_start(index: str = 'a'):
         if MyTimer.total_checks.get(index) is None:
             MyTimer.total_checks[index] = 0
         MyTimer.checks[index] = time.time()
 
     @staticmethod
-    def chek_finish(index: str = 'a'):
+    def check_finish(index: str = 'a'):
         MyTimer.total_checks[index] += (time.time()-MyTimer.checks[index])
 
     @staticmethod

@@ -123,7 +123,7 @@ class CreateLog(QMainWindow):
 
     def create_frames_log(self):
         widgets = []
-        for log in self.data_map.all_logs:
+        for log in sorted(self.data_map.all_logs, key=lambda i: i.name):
             widgets.append([])
             del_btn = QPushButton('❌')
             del_btn.setMaximumWidth(30)
@@ -149,12 +149,12 @@ class CreateLog(QMainWindow):
         self.create_frames_log()
 
     def add_calculated_curve(self):
-        expr_log = ExpressionLog({log.name: log.x for log in self.data_map.all_logs}, self.formulaLineEdit.text())
+        expr_log = ExpressionLog(self.data_map, self.formulaLineEdit.text())
         if expr_log():
             self.expressionValidLabel.setText(self.formulaLineEdit.text() + ' ok')
             label_change_color(self.expressionValidLabel, 'green')
-            l = Log(name=self.get_log_name(), x=expr_log.x)
-            l.text_expression = self.formulaLineEdit.text()
+            l = Log(self.data_map, name=self.get_log_name(), x=expr_log.x)
+            l.text_expression = expr_log.text_expression
             self.data_map.add_logs(l)
         else:
             label_change_color(self.expressionValidLabel, 'red')

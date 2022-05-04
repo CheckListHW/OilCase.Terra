@@ -21,6 +21,7 @@ class SettingsView(QWidget):
         self.add_row_property('Initial Depth', self.initial_depth_spin_box)
 
         self.step_depth_spin_box = QDoubleSpinBox()
+        self.step_depth_spin_box.setSingleStep(0.1)
         self.step_depth_spin_box.setValue(self.data_map.step_depth)
         self.add_row_property('Depth step', self.step_depth_spin_box)
 

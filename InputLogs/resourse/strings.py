@@ -5,9 +5,6 @@ from InputData.resource.const_class import Const
 
 
 class Tips(Const):
-    SIMPLIFYBUTTON: Final = "Раставляет точки по периметру линии \n" \
-                            "равно удаленно друг от друга"
-
     CreateWaterLog: Final = "Нужно выбрать если кривая будет применяться к Водной части фации"
 
     CreateOilLog: Final = "Нужно выбрать если кривая будет применяться к Нефтяной части фации"
@@ -29,6 +26,18 @@ class Tips(Const):
     CurvesAddCalculatedCurve: Final = 'Добавить кривую Calculated Curve'
 
     CurvesAddRangeCurve: Final = 'Добавить кривую Range Curve'
+
+    ChooseLayer: Final = 'Изменить видимые слои'
+
+    AddLogWindow: Final = 'Создать кривые'
+
+    СreateCoreSampleWindow: Final = 'Добавить кривые имитирующие керн'
+
+    СreateOWCWindow: Final = 'Указать ВНК для фаций'
+
+    AttachLogWindow: Final = 'Связать кривые и фации'
+
+    LogSelect: Final = 'Изменить отображаемую кривую'
 
 
 def main_icon() -> str:

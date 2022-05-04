@@ -1,20 +1,32 @@
 from functools import partial
 from random import random
+from threading import Thread
+from typing import Optional
 
 import pandas as pd
 
 from InputLogs.mvc.Model.log_curves import Log, sort_expression_logs, expression_parser
-from InputLogs.mvc.Model.map_property import CoreSample, cut_along, MapProperty
+from InputLogs.mvc.Model.map_property import CoreSample, cut_along, MapProperty, ColumnIntervals
 from utils.a_thread import AThread
 from utils.log.log_file import print_log
+from utils.time_work import MyTimer
 
 
 class ExportLogs:
+    __slots__ = 'data_map', 'export_threads'
+
     def __init__(self, data_map: MapProperty):
         self.data_map = data_map
         self.export_threads = []
 
+    def __call__(self, *args, **kwargs):
+        self.export()
+
     def export_on_thread(self, export_method: callable, path: str):
+        if self.data_map.export_data is None:
+            print_log('please update data')
+            return
+
         export_thread = AThread()
         export_thread.finished.connect(lambda: print_log('Finish export Excel'))
         export_thread.callback = partial(export_method, path)
@@ -25,35 +37,44 @@ class ExportLogs:
         self.export_on_thread(self.__to_xlsx, path)
 
     def __to_xlsx(self, path: str):
-        save_to_excel(self.export(), path)
+        save_to_excel(self.data_map.export_data, path)
 
     def to_csv(self, path: str):
         self.export_on_thread(self.__to_csv, path)
 
     def __to_csv(self, path: str):
-        save_to_csv(self.export(), path)
+        save_to_csv(self.data_map.export_data, path)
 
     def to_t_nav(self, path: str):
         self.export_on_thread(self.__to_t_nav, path)
 
     def __to_t_nav(self, path: str):
-        save_to_t_nav(self.export(), path)
+        save_to_t_nav(self.data_map.export_data, path)
 
     def export(self):
         print_log('Start transform data')
+
+        self.data_map.export_data = None
         data_map = MapProperty(data=self.data_map.save())
 
+        r: () = lambda i: round(i, 5) if i is float else i
+
+        MyTimer.start()
         coors, data = [(x1, y1) for x1 in range(data_map.max_x + 1) for y1 in range(data_map.max_y + 1)], {}
+
         for log_name in data_map.main_logs_name_non_expression():
             data_map.change_log_select(log_name)
             for x, y in coors:
+                MyTimer.check_start('curve')
                 column = data_map.get_column_curve(x, y)
+                MyTimer.check_finish('curve')
                 for x1, lith, y1 in (column.intervals if column else []):
                     for i in range(len(x1)):
                         ceil_name = f'{x}-{y}-{y1[i]}'
                         if not data.get(ceil_name):
                             data[ceil_name] = {'i': x + 1, 'j': y + 1, 'index': y1[i], 'Lithology': lith}
-                        data[ceil_name][log_name] = x1[i]
+                        data[ceil_name][log_name] = r(x1[i])
+        MyTimer.finish()
 
         data = add_height_above_fwl(data, data_map.owc)
         data = index_to_depth(data, lambda i: i * self.data_map.step_depth + self.data_map.initial_depth)
@@ -61,7 +82,7 @@ class ExportLogs:
         data = edit_lithology_name_in_data(data)
         data = add_log_sample_in_export(data, data_map.core_samples, self.data_map.percent_safe_core)
         print_log('Data ready')
-        return data
+        self.data_map.export_data = data
 
 
 def index_to_depth(data: {}, depth: ()) -> {}:

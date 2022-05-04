@@ -1,18 +1,22 @@
+from __future__ import annotations
+
+import random
 import re
 from typing import Optional, Callable
 
-import matplotlib.pyplot as plt
 import numpy as np
 from scipy.interpolate import interp1d
 
 from utils.ceil import ceil
 from utils.json_in_out import JsonInOut
+from utils.time_work import MyTimer
 
 
 class Log(JsonInOut):
-    __slots__ = '_min', '_max', 'name', 'main', '_x', '_trend', 'f_trend', 'dispersion', 'text_expression'
+    __slots__ = '_min', '_max', 'name', 'main', '_x', '_trend', 'f_trend', 'dispersion', 'text_expression', 'data_map'
 
-    def __init__(self, data_dict: dict = None, **kwargs):
+    def __init__(self, data_map, data_dict: dict = None, **kwargs):
+        self.data_map = data_map
         self._min = None
         self._max = None
         self.name = ''
@@ -92,10 +96,16 @@ class Log(JsonInOut):
 
     @property
     def x(self) -> [float]:
+        if self.text_expression and self.data_map:
+            e_log = ExpressionLog(self.data_map, self.text_expression)
+            if e_log():
+                return e_log.x
         if self._x:
             return self._x
         if self.max is not None and self.min is not None:
-            return self.trend_x()
+            x = self.trend_x()
+            return x
+
         else:
             return [0 for _ in range(500)]
 
@@ -109,9 +119,9 @@ class Log(JsonInOut):
         f_trend = self.f_trend_init()
         f_rand: () = lambda v: np.random.uniform(a + (v - a) * des, b - (b - v) * des)
         f_offset: () = lambda i, y1: y1 + avg * ceil(f_trend(i))
-        f_y_limit: () = lambda y: y if a <= y <= b else f_y_limit(a + a - y) if a > y else f_y_limit(b - (y - b))
+        f_y_limit: () = lambda y: y if a <= y <= b else f_y_limit(a + a - y) if a > y else f_y_limit(b + b - y)
 
-        y, len_y = [(self.min + self.max)/2], 500
+        y, len_y = [(self.min + self.max) / 2], 500
         for _ in range(len_y - 1):
             y.append(f_rand(y[-1]))
 
@@ -132,6 +142,10 @@ def expression_array_parser(expression: str, logs_name: [str]) -> Optional[Calla
         return lambda i: None
 
 
+def get_variable_expression(expression: str) -> [str]:
+    return [var[1:-1] for var in re.findall(r'[{].*?[}]', expression)]
+
+
 def expression_parser(expression: str) -> Optional[Callable]:
     for l_n in re.findall(r'[{].*?[}]', expression):
         expression = expression.replace(l_n, f"c['{l_n[1:l_n.index('|')]}']")
@@ -142,22 +156,31 @@ def expression_parser(expression: str) -> Optional[Callable]:
 
 
 class ExpressionLog:
-    __slots__ = 'x'
+    __slots__ = 'x', 'logs', 'text_expression'
 
-    def __init__(self, logs: {str: [float]}, text_expression: str):
-        self.x = [None for _ in range(500)]
-        expression = expression_array_parser(text_expression, [str(k) for k in logs])
-        len_x = len(self.x)
-        try:
-            self.x = [expression(logs, i, len_x) for i in range(len(self.x))]
-        except:
-            pass
+    def __init__(self, data_map, text_expression: str):
+        self.text_expression = text_expression
+        log_names = get_variable_expression(self.text_expression)
+
+        sub_logs: () = lambda name: [l for l in data_map.all_logs if l.name.split('.')[0] == name]
+        self.logs = {name: random.choice(sub_logs(name)).x for name in log_names}
+
+        self.update()
 
     def __call__(self, *args, **kwargs) -> bool:
         return self.valid_expression()
 
     def valid_expression(self) -> bool:
         return bool(not self.x.__contains__(None))
+
+    def update(self):
+        self.x = [None for _ in range(500)]
+        expression = expression_array_parser(self.text_expression, [str(k) for k in self.logs])
+        len_x = len(self.x)
+        try:
+            self.x = [expression(self.logs, i, len_x) for i in range(len(self.x))]
+        except:
+            pass
 
 
 def sort_expression_logs(logs: [Log]) -> [(str, str)]:

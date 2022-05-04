@@ -3,8 +3,9 @@ from InputLogs.mvc.Model.map_property import MapProperty
 
 
 class Map(MapProperty):
-    __slots__ = 'columns', 'body_names', 'attach_logs', '_visible_names', 'core_samples', 'settings', \
-                'interval_data', 'max_x', 'max_y', 'max_z', 'path', 'owc', 'all_logs', 'export', 'percent_safe_core'
+    __slots__ = '_visible_names', 'max_y', 'all_logs', 'owc', 'max_z', 'settings', 'path', 'max_x', 'attach_logs', \
+                'percent_safe_core', 'step_depth', 'initial_depth', 'body_names', 'core_samples', 'interval_data', \
+                'columns', 'export'
 
     def __init__(self, path: str = None, data: dict = None):
         super(Map, self).__init__(path, data)

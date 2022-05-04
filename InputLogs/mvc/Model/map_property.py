@@ -1,4 +1,5 @@
 import random
+import re
 from typing import Union, Optional
 
 import numpy as np
@@ -7,6 +8,7 @@ from InputLogs.mvc.Model.log_curves import Log
 from InputLogs.utils.file import dict_from_json
 from utils.gisaug.augmentations import DropRandomPoints, Stretch
 from utils.realistic_transition import realistic_transition
+from utils.time_work import MyTimer
 
 interval = [[float], str, [float]]
 # [('core_sample_name', 'lithology_name', 'log_name', 'percent_safety(in 0...1)'  , 'null_val')]
@@ -14,8 +16,9 @@ CoreSample = (str, str, str, str)
 
 
 def cut_along(name: str, symbol: str) -> str:
-    name = name + symbol
-    return name[:name.index(symbol)]
+    return name.split(symbol)[0]
+    # name = name + symbol
+    # return name[:name.index(symbol)]
 
 
 def sub_name_order_update(logs: [Log]):
@@ -72,15 +75,18 @@ class ColumnIntervals:
 
     def append(self, value: interval):
         self.intervals.append(value)
+        self.set_min(min(value[0]))
+        self.set_max(max(value[0]))
 
 
 class MapProperty:
     __slots__ = 'columns', 'body_names', 'attach_logs', '_visible_names', 'core_samples', 'settings', \
-                'interval_data', 'max_x', 'max_y', 'max_z', 'path', 'owc', \
-                'all_logs', 'export', 'percent_safe_core', 'initial_depth', 'step_depth'
+                'interval_data', 'max_x', 'max_y', 'max_z', 'path', 'owc', 'export_data',\
+                'all_logs', 'export', 'percent_safe_core', 'initial_depth', 'step_depth', 'select_log'
 
     def __init__(self, path: str = None, data: dict = None):
         self.columns, self.interval_data = {}, {}
+        self.export_data, self.select_log = None, None
         self._visible_names, self.body_names, self.all_logs = [], [], []
         self.max_x, self.max_y, self.max_z = 0, 0, 0
         self.attach_logs, self.owc = {}, {}  # {name(str): [Log]}, {name(str): float}
@@ -116,7 +122,7 @@ class MapProperty:
             if data['settings'].get('step_depth'):
                 self.step_depth = data['settings']['step_depth']
         if data.get('all_logs'):
-            self.all_logs = [Log(data_dict=log) for log in data['all_logs']]
+            self.all_logs = [Log(self, data_dict=log) for log in data['all_logs']]
         if data.get('owc'):
             self.owc = data['owc']
         if data.get('core_samples'):
@@ -201,7 +207,6 @@ class MapProperty:
         m_names = set(self.main_body_names())
         for k in self.owc.keys():
             name = k[:k.index("|") + 1]
-            # m_names.discard(name)
             m_names.add(f'{name}O|')
             m_names.add(f'{name}W|')
         return sorted(list(m_names))
@@ -219,6 +224,7 @@ class MapProperty:
             self.owc.pop(name)
 
     def change_log_select(self, main_name: str):
+        self.select_log = main_name
         cut_to_main: () = lambda name: cut_along(cut_along(name, '.'), '|')
         [setattr(log, 'main', cut_to_main(log.name) == main_name) for log in self.all_logs]
 
@@ -235,8 +241,6 @@ class MapProperty:
 
         self.attach_logs = {k: [log for log in self.attach_logs[k] if log in self.all_logs] for k, v in
                             self.attach_logs.items()}
-        # for lay_name in list(self.logs.keys()):
-        #     self.logs[lay_name] = [log for log in self.logs[lay_name] if log in self.all_logs]
 
     def get_logs(self, name: str) -> []:
         return [] if self.attach_logs.get(name) is None else self.attach_logs.get(name)
@@ -280,19 +284,38 @@ class MapProperty:
             return []
 
     def get_column_curve(self, x: int, y: int) -> Optional[ColumnIntervals]:
+        if self.export_data is not None:
+            self.export_data: dict = self.export_data
+            curves = [i for i in self.export_data.values() if i.get('i') == x+1 and i.get('j') == y+1]
+
+            name_log = self.select_log
+            curve = [i.get(name_log) for i in curves]
+            indexes = [i.get('index') for i in curves]
+
+            column = ColumnIntervals()
+            column.append([curve, name_log, indexes])
+
+            return column
+
         if not len(self.attach_logs.keys()):
             return None
 
         col_intervals = ColumnIntervals()
         sort_column = sorted(self.get_column(x, y), key=lambda i: i['s'])
 
+        MyTimer.check_start('1')
+
+        drp = DropRandomPoints(0.95)
         for name, s, e in [i.values() for i in sort_column]:
+
             log = self.get_one_log(name)
+
             if not log:
                 continue
+
             interval = range(int(s), int(e) + 1)
             if len(interval) >= 1:
-                curve = DropRandomPoints(0.95)(np.array(log.x))
+                curve = drp(np.array(log.x))
                 curve = Stretch.stretch_curve_by_count(curve, len(interval))
 
                 col_intervals.append((curve, name, interval))
@@ -301,6 +324,8 @@ class MapProperty:
 
         if not col_intervals.count:
             return None
+
+        MyTimer.check_finish('1')
 
         col_pre, curve_use_per = col_intervals[0], 0.1 + random.random() * 0.05
 
@@ -312,6 +337,7 @@ class MapProperty:
             y_a, y_b = realistic_transition(curve_p[start:], curve_n[:end])
             col_intervals[i - 1] = (list(curve_p[:start]) + y_a, name_p, interval_p)
             col_pre = col_intervals[i] = (y_b + list(curve_n[end:]), name_n, interval_n)
+
 
         return col_intervals
 

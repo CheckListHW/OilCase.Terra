@@ -206,9 +206,6 @@
                   <property name="text">
                    <string>Range</string>
                   </property>
-                  <property name="checked">
-                   <bool>true</bool>
-                  </property>
                  </widget>
                 </item>
                 <item>

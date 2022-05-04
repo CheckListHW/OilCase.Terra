@@ -6,6 +6,7 @@ from scipy.interpolate import interp1d
 from .validations import is_valid_coefficient, is_valid_probability, are_valid_bounds, are_valid_probability_bounds, \
     is_valid_positive_integer
 from .utils import numbers_array_to_string
+from ..time_work import MyTimer
 
 
 class Augmentation:

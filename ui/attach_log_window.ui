@@ -138,8 +138,8 @@
                  <rect>
                   <x>0</x>
                   <y>0</y>
-                  <width>146</width>
-                  <height>482</height>
+                  <width>144</width>
+                  <height>478</height>
                  </rect>
                 </property>
                 <layout class="QVBoxLayout" name="verticalLayout_4">
@@ -189,7 +189,7 @@
              <string notr="true"/>
             </property>
             <property name="text">
-             <string>Add</string>
+             <string>Attach</string>
             </property>
             <property name="autoDefault">
              <bool>false</bool>
