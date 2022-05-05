@@ -167,7 +167,7 @@ def prepare_dataframe_to_save(data: dict) -> pd.DataFrame:
 def save_to_t_nav(data: [], path: str):
     print_log('Start save TNavigator(.inc)')
     data_str = ''
-    df = prepare_dataframe_to_save(data).sort_values(by=['index', 'j']).drop(['i', 'j', 'index', 'Lithology'], axis=1)
+    df: pd.DataFrame = prepare_dataframe_to_save(data).sort_values(by=['index', 'j']).drop(['i', 'j', 'index', 'Lithology'], axis=1)
     for data_name, column in df.items():
         data_str += f'{data_name} '
         for value, i in zip(column, range(len(column))):
@@ -183,7 +183,7 @@ def save_to_t_nav(data: [], path: str):
     file = open(path, 'w+')
     file.write(data_str)
     file.close()
-    print_log('Export to TNavigator (.inc) is finish save to:' + path)
+    print_log(f'Export to TNavigator (.inc) is finish save to:{path}')
     print_log(f'Numer of ceil: {len(df)}')
 
 

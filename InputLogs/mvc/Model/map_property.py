@@ -303,9 +303,7 @@ class MapProperty:
         col_intervals = ColumnIntervals()
         sort_column = sorted(self.get_column(x, y), key=lambda i: i['s'])
 
-        MyTimer.check_start('1')
 
-        drp = DropRandomPoints(0.95)
         for name, s, e in [i.values() for i in sort_column]:
 
             log = self.get_one_log(name)
@@ -315,8 +313,9 @@ class MapProperty:
 
             interval = range(int(s), int(e) + 1)
             if len(interval) >= 1:
-                curve = drp(np.array(log.x))
-                curve = Stretch.stretch_curve_by_count(curve, len(interval))
+                # curve = DropRandomPoints(0.95)(np.array(log.get_x(len(interval))))
+                # curve = Stretch.stretch_curve_by_count(curve, len(interval))
+                curve = log.get_x(len(interval))
 
                 col_intervals.append((curve, name, interval))
                 col_intervals.set_min(log.min)
@@ -325,7 +324,6 @@ class MapProperty:
         if not col_intervals.count:
             return None
 
-        MyTimer.check_finish('1')
 
         col_pre, curve_use_per = col_intervals[0], 0.1 + random.random() * 0.05
 
@@ -338,6 +336,10 @@ class MapProperty:
             col_intervals[i - 1] = (list(curve_p[:start]) + y_a, name_p, interval_p)
             col_pre = col_intervals[i] = (y_b + list(curve_n[end:]), name_n, interval_n)
 
+        total_sum = sum([len(i[0]) for i in col_intervals.intervals])
+        # if total_sum != 500:
+        print(total_sum, x ,y)
 
         return col_intervals
+
 

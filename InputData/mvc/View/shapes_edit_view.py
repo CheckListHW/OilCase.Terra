@@ -1,9 +1,11 @@
+from functools import partial
 from os import environ
 from os.path import isfile
 
-from PyQt5 import uic
+from PyQt5 import uic, Qt
 from PyQt5.QtGui import QColor, QIcon
-from PyQt5.QtWidgets import QMainWindow, QCheckBox, QColorDialog
+from PyQt5.QtWidgets import QMainWindow, QCheckBox, QColorDialog, QWidget, QHBoxLayout, QPushButton, QDialog, QLabel, \
+    QLineEdit
 
 from InputData.mvc.Controller.draw_shape import Plot3d, DrawVoxels
 from InputData.mvc.Controller.qt_matplotlib_connector import EditorFigureController
@@ -30,16 +32,16 @@ class ShapeEditWindow(QMainWindow):
         self.map, self.file_edit = Map(), FileEdit(self)
         self.connector = EditorFigureController(self.viewFrame)
         self.voxels = DrawVoxels(self.map, Plot3d(self.connector))
-        self.load_default_shape()
         self.handlers_connect()
 
-        # self.map.attach(ObjectObserver([self.update_all]))
         self.set_size_info()
         self.update_all()
+
+        # self.map.attach(ObjectObserver([self.update_all]))
         # self.debug()
 
     def handlers_connect(self) -> None:
-        self.create_file_action.triggered.connect(self.create_map)
+        self.create_file_action.triggered.connect(self.create_project)
         self.open_file_action.triggered.connect(self.open_map)
         self.exportRoofAction.triggered.connect(self.export_roof)
         self.exportMapAction.triggered.connect(lambda: FileEdit(self).save_file(ExportMap(self.map)()))
@@ -99,20 +101,17 @@ class ShapeEditWindow(QMainWindow):
     def debug(self):
         self.edit_layer()
 
-    def load_default_shape(self):
-        base_dict = dict_from_json(environ['input_data'] + '/base.json')
-        if base_dict != {}:
-            self.file_edit.file_used = environ['input_data'] + '/base.json'
-            self.map.load_from_dict(base_dict)
-
     def save_map(self):
-        self.file_edit.save_file(self.map.get_as_dict())
+        self.file_edit.save_model_file(self.map.get_as_dict())
 
-    def create_map(self):
-        self.change_map(self.file_edit.create_file())
+    def create_project(self):
+        self.file_edit.create_project()
+        self.setWindowTitle(f'InputData. Project: {self.file_edit.project_path}')
+        self.change_map(self.file_edit.model_path)
 
     def open_map(self):
-        self.change_map(self.file_edit.open_file())
+        self.file_edit.open_project()
+        self.change_map(self.file_edit.model_path)
         self.show_frame()
 
     def change_map(self, data_map_path: str):

@@ -10,6 +10,7 @@ from scipy.interpolate import interp1d
 from utils.ceil import ceil
 from utils.json_in_out import JsonInOut
 from utils.time_work import MyTimer
+from InputLogs.cython.trend.trend_x import trend as c_trend
 
 
 class Log(JsonInOut):
@@ -96,6 +97,13 @@ class Log(JsonInOut):
 
     @property
     def x(self) -> [float]:
+        return self.get_x(500)
+
+    @x.setter
+    def x(self, value: [float]):
+        self._x = value
+
+    def get_x(self, len_x: int):
         if self.text_expression and self.data_map:
             e_log = ExpressionLog(self.data_map, self.text_expression)
             if e_log():
@@ -103,33 +111,35 @@ class Log(JsonInOut):
         if self._x:
             return self._x
         if self.max is not None and self.min is not None:
-            x = self.trend_x()
+            x = self.trend_x(len_x)
             return x
 
         else:
-            return [0 for _ in range(500)]
+            return [0 for _ in range(len_x)]
 
-    @x.setter
-    def x(self, value: [float]):
-        self._x = value
+    def trend_x(self, len_x: int):
+        MyTimer.check_start('1')
+        from InputLogs.resourse.limits import MAX_TREND_RATIO
+        # x = c_trend(self.min, self.max, self.dispersion, len_x, self.f_trend_init(), MAX_TREND_RATIO)
+        x = trend(self.min, self.max, self.dispersion, len_x, self.f_trend_init())
+        MyTimer.check_finish('1')
+        return x
 
-    def trend_x(self):
-        a, b, avg, des = self.min, self.max, abs(self.max - self.min) / 2, self.dispersion
 
-        f_trend = self.f_trend_init()
-        f_rand: () = lambda v: np.random.uniform(a + (v - a) * des, b - (b - v) * des)
-        f_offset: () = lambda i, y1: y1 + avg * ceil(f_trend(i))
-        f_y_limit: () = lambda y: y if a <= y <= b else f_y_limit(a + a - y) if a > y else f_y_limit(b + b - y)
+def trend(min_x: int, max_x: int, dispersion: float, len_x: int, f_trend: ()) -> [float]:
+    a, b, avg, des = min_x, max_x, abs(max_x - min_x) / 2, dispersion
 
-        y, len_y = [(self.min + self.max) / 2], 500
-        for _ in range(len_y - 1):
-            y.append(f_rand(y[-1]))
+    f_rand: () = lambda v: np.random.uniform(a + (v - a) * des, b - (b - v) * des)
+    f_offset: () = lambda i, y1: y1 + avg * ceil(f_trend(i))
+    f_y_limit: () = lambda y: y if a <= y <= b else f_y_limit(a + a - y) if a > y else f_y_limit(b + b - y)
 
-        return [f_y_limit(f_offset(i / len_y, y1)) for i, y1 in zip(range(len_y), y)]
+    y, len_y = [(min_x + max_x) / 2], len_x
+    for _ in range(len_y - 1):
+        y.append(f_rand(y[-1]))
 
-    @x.setter
-    def x(self, value):
-        self._x = value
+    v = [f_y_limit(f_offset(i / len_y, y1)) for i, y1 in zip(range(len_y), y)]
+
+    return v
 
 
 def expression_array_parser(expression: str, logs_name: [str]) -> Optional[Callable]:

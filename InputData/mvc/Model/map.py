@@ -4,6 +4,7 @@ import math
 import numpy as np
 import openpyxl
 import pandas as pd
+from PyQt5.QtWidgets import QMessageBox
 from matplotlib import pyplot as plt
 
 from InputData.mvc.Model.roof_profile import RoofProfile, RoofPoint
@@ -183,11 +184,33 @@ class ExportMap:
     def export(self) -> dict:
         self.__init__(self.map)
         for shape in self.map.get_visible_shapes():
-            data = self.correction_strong_mixing(self.calc_polygon_in_draw(shape), shape.size.x, shape.size.y)
+            if shape.filler:
+                data = self.calc_polygon_in_draw(shape)
+            else:
+                data = self.correction_strong_mixing(self.calc_polygon_in_draw(shape), shape.size.x, shape.size.y)
+
             self.map.data[f'{shape.name}|{shape.sub_name}'] = \
                 dict_update(self.map.data.get(shape.name), transform_data(data))
 
         self.map.data = {k: v for k, v in self.map.data.items() if v}
+        column_names = {}
+        for x, y in [(x, y) for x in range(self.map.size.x) for y in range(self.map.size.y)]:
+            column_names[f'{x}-{y}'] = 0
+            for v in self.map.data.values():
+                try:
+                    column_names[f'{x}-{y}'] += sum([cv['e']-cv['s'] + 1 for cv in v[x][y]])
+                except:
+                    pass
+
+        ceil_number = sum([v for v in column_names.values()])
+        if ceil_number != self.map.size.x*self.map.size.y*self.map.size.z:
+            collumn_error = [(k, v) for k, v in column_names.items() if v != self.map.size.z]
+            print(ceil_number, collumn_error)
+            msg = QMessageBox()
+            msg.setWindowTitle("Error ceil number")
+            msg.setText(f"Ceil number {ceil_number} - target{self.map.size.x*self.map.size.y*self.map.size.z}.\n\n"
+                        f"Error in column: {collumn_error}")
+            msg.exec_()
         return self.map.data
 
     def calc_polygon_in_draw(self, fig: Shape) -> []:

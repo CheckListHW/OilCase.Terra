@@ -6,12 +6,16 @@ from os.path import isfile
 
 
 def save_dict_as_json(data: dict, path: str = os.getcwd(), filename: str = f'/temp_files/lay_name{random.randint(1, 1000)}') -> str:
+    print(path, filename)
     if path.__contains__('.json'):
         path_save = path
     elif filename.__contains__('.json'):
         path_save = filename
+    elif filename.__contains__('.'):
+        path_save = path+'/'+filename.split('/')[-1]
     else:
         path_save = path + f'/{filename}.json'
+    path_save.replace("\\", '/')
     path_save.replace('//', '/')
 
     try:
