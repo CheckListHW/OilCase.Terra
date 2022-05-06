@@ -9,6 +9,7 @@ from InputData.mvc.View.shapes_edit_view import ShapeEditWindow
 from InputData.resource.strings import main_icon
 from InputLogs.mvc.Model.map import Map
 from InputLogs.mvc.View.input_log_view import InputLogView
+from utils.file import FileEdit
 from utils.log.log_file import print_log
 
 os.environ['input_data'] = os.getcwd() + '/InputData'
@@ -26,25 +27,35 @@ def console_excepthook(exc_type, exc_value, exc_tb):
 
 
 class InputDataLogs(QWidget):
-
     def __init__(self):
         super(InputDataLogs, self).__init__()
-        self.log_window = InputLogView()
-        self.data_window = ShapeEditWindow()
+        # self.file_edit = FileEdit('C:/Users/KosachevIV/PycharmProjects/Input/Projects/p1.oilcase')
+        self.file_edit = FileEdit()
+        self.data_window = ShapeEditWindow(file_edit=self.file_edit)
+        self.log_window = InputLogView(file_edit=self.file_edit)
 
         self.log_out = self.log_window.set_log
 
         btn_logs = QPushButton('InputLogs')
         btn_data = QPushButton('InputData')
+        btn_open_project = QPushButton('Open project')
+        btn_open_project.clicked.connect(self.open_project)
         btn_logs.clicked.connect(self.open_logs)
         btn_data.clicked.connect(self.open_data)
 
         self.setLayout(QHBoxLayout())
+        self.layout().addWidget(btn_open_project)
         self.layout().addWidget(btn_data)
         self.layout().addWidget(btn_logs)
         self.setWindowTitle('Input')
         self.setWindowIcon(QIcon(main_icon()))
         self.setFixedSize(300, 70)
+
+
+    def open_project(self):
+        self.file_edit.open_project()
+        project_name = self.file_edit.project_path.split("/")[-1]
+        self.setWindowTitle(f'Input Project: {project_name}')
 
     def open_logs(self):
         self.log_window.show()
@@ -54,7 +65,6 @@ class InputDataLogs(QWidget):
 
     def closeEvent(self, a0) -> None:
         os._exit(1)
-
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)

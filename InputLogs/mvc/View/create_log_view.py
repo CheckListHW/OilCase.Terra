@@ -11,7 +11,7 @@ from InputLogs.mvc.Model.map import Map
 from InputLogs.mvc.View.help_veiws import LogCreateHelp
 from InputLogs.mvc.View.trend_view import TrendView
 from InputLogs.resourse.strings import ErrorMessage, Tips
-from InputLogs.utils.file import FileEdit, mass_from_xlsx
+from utils.file import FileEdit, mass_from_xlsx
 from utils.create_layout import create_frame, clear_layout
 
 

@@ -374,7 +374,7 @@
    </property>
    <widget class="QMenu" name="menu">
     <property name="title">
-     <string>Файлы</string>
+     <string>Проект</string>
     </property>
     <addaction name="openFileAction"/>
     <addaction name="saveFileAction"/>

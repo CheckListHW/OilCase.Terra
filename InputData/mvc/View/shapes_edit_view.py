@@ -1,11 +1,10 @@
-from functools import partial
 from os import environ
 from os.path import isfile
+from threading import Thread
 
-from PyQt5 import uic, Qt
+from PyQt5 import uic
 from PyQt5.QtGui import QColor, QIcon
-from PyQt5.QtWidgets import QMainWindow, QCheckBox, QColorDialog, QWidget, QHBoxLayout, QPushButton, QDialog, QLabel, \
-    QLineEdit
+from PyQt5.QtWidgets import QMainWindow, QCheckBox, QColorDialog, QMessageBox
 
 from InputData.mvc.Controller.draw_shape import Plot3d, DrawVoxels
 from InputData.mvc.Controller.qt_matplotlib_connector import EditorFigureController
@@ -16,20 +15,19 @@ from InputData.mvc.View.roof_profile_view import RoofProfileEditWindow
 from InputData.mvc.View.split_edit_view import SplitEditWindow
 from InputData.mvc.View.surface_draw_view import SurfaceEditWindow
 from InputData.resource.strings import main_icon, TitleName
-from InputData.utils.file import FileEdit
-from utils.filedialog import dict_from_json
+from utils.file import FileEdit
 
 
 class ShapeEditWindow(QMainWindow):
-    def __init__(self):
+    def __init__(self, file_edit=FileEdit()):
         super(ShapeEditWindow, self).__init__()
         uic.loadUi(environ['project'] + '/ui/shape_edit.ui', self)
 
         self.setWindowTitle(TitleName.ShapeEditWindow)
         self.setWindowIcon(QIcon(main_icon()))
-        self.hide_frame()
+        self.hide_sub_frame()
 
-        self.map, self.file_edit = Map(), FileEdit(self)
+        self.map, self.file_edit = Map(), file_edit
         self.connector = EditorFigureController(self.viewFrame)
         self.voxels = DrawVoxels(self.map, Plot3d(self.connector))
         self.handlers_connect()
@@ -37,24 +35,40 @@ class ShapeEditWindow(QMainWindow):
         self.set_size_info()
         self.update_all()
 
-        # self.map.attach(ObjectObserver([self.update_all]))
-        # self.debug()
+    def showEvent(self, a0) -> None:
+        if self.file_edit.project_path:
+            self.change_map(self.file_edit.model_path)
+            self.show_sub_frame()
+        super(ShapeEditWindow, self).showEvent(a0)
+
+    def export_map(self):
+        export_data = ExportMap(self.map)()
+        path = self.file_edit.save_polygon_model(export_data)
+        if path:
+            text_msg = f'Файл экспорта сохранен по пути: {path}'
+        else:
+            text_msg = f'Не удалось сохранить файл'
+        msg = QMessageBox()
+        msg.setWindowTitle("Project export message")
+        msg.setText(text_msg)
+        msg.exec_()
 
     def handlers_connect(self) -> None:
         self.create_file_action.triggered.connect(self.create_project)
         self.open_file_action.triggered.connect(self.open_map)
         self.exportRoofAction.triggered.connect(self.export_roof)
-        self.exportMapAction.triggered.connect(lambda: FileEdit(self).save_file(ExportMap(self.map)()))
         self.save_file_action.triggered.connect(self.save_map)
 
-        save_shape: () = lambda: self.file_edit.save_file(self.layersComboBox.currentData().get_as_dict)
+        self.exportMapAction.triggered.connect(self.export_map)
+
+        current_layer = lambda: self.layersComboBox.currentData()
+        save_shape: () = lambda: self.file_edit.save_file(current_layer().get_as_dict)
         self.saveLayerButton.clicked.connect(save_shape)
 
-        load_layer: () = lambda: self.layersComboBox.currentData().load_from_json(self.file_edit.open_file())
+        load_layer: () = lambda: current_layer().load_from_json(self.file_edit.open_file())
         self.loadLayerButton.clicked.connect(load_layer)
 
         self.deleteLayerButton.clicked.connect(self.delete_layer)
-
         self.addLayerButton.clicked.connect(self.add_layer)
         self.acceptSettingsButton.clicked.connect(self.accept_settings)
         self.editLayerButton.clicked.connect(self.edit_layer)
@@ -84,12 +98,12 @@ class ShapeEditWindow(QMainWindow):
         self.split_handlers_connect()
         self.speedPlotDrawComboBox.activated.connect(self.change_draw_speed)
 
-    def hide_frame(self):
+    def hide_sub_frame(self):
         frames = [self.visibleFrame, self.propertyFrame, self.editFrame, self.partControlFrame,
                   self.funcFrame, self.sizeFrame, self.saveLoadShapeFrame]
         _ = [frame.hide() for frame in frames]
 
-    def show_frame(self):
+    def show_sub_frame(self):
         frames = [self.visibleFrame, self.propertyFrame, self.editFrame, self.partControlFrame]
         _ = [frame.show() for frame in frames]
 
@@ -106,15 +120,16 @@ class ShapeEditWindow(QMainWindow):
 
     def create_project(self):
         self.file_edit.create_project()
-        self.setWindowTitle(f'InputData. Project: {self.file_edit.project_path}')
         self.change_map(self.file_edit.model_path)
 
     def open_map(self):
         self.file_edit.open_project()
-        self.change_map(self.file_edit.model_path)
-        self.show_frame()
+        if self.file_edit.model_path:
+            self.change_map(self.file_edit.model_path)
+            self.show_sub_frame()
 
     def change_map(self, data_map_path: str):
+        self.setWindowTitle(f'InputData. Project: {self.file_edit.project_path}')
         if isfile(data_map_path):
             self.map.load_from_json(data_map_path)
             self.set_size_info()
@@ -205,7 +220,9 @@ class ShapeEditWindow(QMainWindow):
             self.fillerCheckBox.setChecked(layer.filler)
             self.shapePartNameComboBox.clear()
 
-        for part in {a for b in [list(layer.parts_property.keys()) for layer in self.map.get_shapes()] for a in b}:
+        for part in {a for b in
+                     [list(layer.parts_property.keys()) for layer in self.map.get_shapes()] for a in
+                     b}:
             self.shapePartNameComboBox.addItem(part)
 
         self.update_part_info()

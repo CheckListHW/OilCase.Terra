@@ -8,7 +8,8 @@ from PyQt5 import uic
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QMainWindow, QPushButton, QLabel
 
-from InputLogs.mvc.Controller.plot_controller import PlotController, PlotMapController, PlotLogController
+from InputLogs.mvc.Controller.plot_controller import PlotController, PlotMapController, \
+    PlotLogController
 from InputLogs.mvc.Model.map import Map
 from InputLogs.mvc.View.attach_log_view import AttachLogView
 from InputLogs.mvc.View.create_core_sample_view import CreateCoreSampleView
@@ -16,7 +17,7 @@ from InputLogs.mvc.View.create_log_view import CreateLog
 from InputLogs.mvc.View.owc_edit_view import OwcEditView
 from InputLogs.mvc.View.setiings_view import SettingsView
 from InputLogs.resourse.strings import TitleName, main_icon, Tips
-from InputLogs.utils.file import FileEdit
+from utils.file import FileEdit
 from utils.log.log_file import read_log
 
 
@@ -30,7 +31,7 @@ class InputLogController:
 
 
 class InputLogView(QMainWindow):
-    def __init__(self):
+    def __init__(self, file_edit=FileEdit()):
         super(InputLogView, self).__init__()
         uic.loadUi(environ['project'] + '/ui/log_input_form.ui', self)
 
@@ -38,9 +39,8 @@ class InputLogView(QMainWindow):
         self.setWindowIcon(QIcon(main_icon()))
 
         self.text_log = ''
-        self.file_edit = FileEdit(parent=self)
+        self.file_edit = file_edit
         self.data_map: Map = Map()
-        self.debug()
 
         self.map_controller = PlotMapController(self.mapPlotWidget)
         self.map_controller.on_choose_column_observer.append(self.redraw_log)
@@ -51,9 +51,16 @@ class InputLogView(QMainWindow):
         self.set_tips()
         self.update_info()
         self.log_select()
-        x = Thread(target=partial(CreateCoreSampleView, self.data_map))
-        x.start()
+
+        # x = Thread(target=partial(CreateCoreSampleView, self.data_map))
+        # x.start()
         Thread(target=self.update_log).start()
+
+    def showEvent(self, a0) -> None:
+        super(InputLogView, self).showEvent(a0)
+        if self.file_edit.log_path:
+            print(self.file_edit.log_path)
+            self.__open_file()
 
     def set_tips(self):
         self.chooseLayerComboBox.setToolTip(Tips.ChooseLayer)
@@ -85,11 +92,6 @@ class InputLogView(QMainWindow):
 
     def set_log(self, text: str):
         self.logText.setText(text)
-
-    def debug(self):
-        path = os.environ['input_logs'] + '/base.json'
-        self.data_map.load_map(path)
-        self.file_edit.file_used = path
 
     def update_info(self):
         self.chooseLayerComboBox.clear()
@@ -175,9 +177,13 @@ class InputLogView(QMainWindow):
         self.file_edit.save_file(self.data_map.save())
 
     def open_file(self):
+        self.file_edit.open_project()
+        self.__open_file()
+
+    def __open_file(self):
         self.toolsWidget.show()
-        path = self.file_edit.open_file()
-        self.data_map.load_map(path)
+        print(self.file_edit.polygon_model_path, self.file_edit.log_path)
+        self.data_map.load(self.file_edit.polygon_model_path, self.file_edit.log_path)
         self.update_info()
 
     def redraw(self):
@@ -188,6 +194,6 @@ class InputLogView(QMainWindow):
 
     def choose_layer(self):
         select_layer = self.chooseLayerComboBox.currentText()
-        self.data_map.visible_names = self.data_map.body_names if select_layer == 'All' else [select_layer]
-
+        self.data_map.visible_names = self.data_map.body_names if select_layer == 'All' else [
+            select_layer]
         self.redraw()

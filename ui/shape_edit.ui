@@ -2432,7 +2432,7 @@
    </property>
    <widget class="QMenu" name="menu">
     <property name="title">
-     <string>Файл</string>
+     <string>Проект</string>
     </property>
     <addaction name="create_file_action"/>
     <addaction name="open_file_action"/>

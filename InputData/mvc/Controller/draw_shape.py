@@ -63,7 +63,7 @@ class DrawVoxels:
 
             # include_not_primary
             i_n_t, _ = (True, shape.calc_intermediate_layers()) \
-                if self.map.draw_speed == 'Simple' else (False, None)
+                if self.map.draw_speed == 'Simple' else (False,  shape.delete_secondary_surface())
 
             main_layers = [lay for lay in shape.layers if (lay.primary or i_n_t) and lay.x != []]
 

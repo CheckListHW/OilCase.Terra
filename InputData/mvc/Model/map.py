@@ -12,7 +12,7 @@ from InputData.mvc.Model.shape import Shape
 from InputData.mvc.Model.size import Size
 from InputData.mvc.Model.split import Split
 from InputData.mvc.Model.surface import get_square_surface
-from utils.filedialog import dict_from_json
+from utils.file import dict_from_json
 from utils.geometry.point_in_polygon import check_polygon_in_polygon
 from utils.json_in_out import JsonInOut
 from utils.observer import Subject
@@ -205,7 +205,6 @@ class ExportMap:
         ceil_number = sum([v for v in column_names.values()])
         if ceil_number != self.map.size.x*self.map.size.y*self.map.size.z:
             collumn_error = [(k, v) for k, v in column_names.items() if v != self.map.size.z]
-            print(ceil_number, collumn_error)
             msg = QMessageBox()
             msg.setWindowTitle("Error ceil number")
             msg.setText(f"Ceil number {ceil_number} - target{self.map.size.x*self.map.size.y*self.map.size.z}.\n\n"

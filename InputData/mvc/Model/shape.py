@@ -9,7 +9,7 @@ from InputData.mvc.Model.point import Point
 from InputData.mvc.Model.size import Size
 from InputData.mvc.Model.split import Split
 from InputData.mvc.Model.surface import Surface, get_square_surface
-from utils.filedialog import dict_from_json
+from utils.file import dict_from_json
 from utils.geometry.angle_line import intersection_segment_dot
 from utils.geometry.calc_offset import calc_offset
 from utils.geometry.intersection_point_horizontal_plane import intersection_point_horizontal_plane

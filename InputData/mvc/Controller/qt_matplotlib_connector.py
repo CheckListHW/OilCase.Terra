@@ -10,7 +10,7 @@ from InputData.mvc.Model.map import Map
 from InputData.mvc.Model.shape import Shape
 from InputData.mvc.Model.size import Size
 from InputData.mvc.Model.surface import Surface
-from utils.filedialog import save_dict_as_json
+from utils.file import save_dict_as_json
 
 
 class EditorController(FigureCanvasQTAgg):

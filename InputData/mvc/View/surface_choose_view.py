@@ -28,6 +28,13 @@ class ViewingLayersWindow(QMainWindow):
         self.get_surfaces, self.frames, self.size = None, list(), 200
         self.handlers_connect()
 
+        from screeninfo import get_monitors
+        m = get_monitors()[0]
+        self.sizeSpin.setValue(250)
+        self.change_size()
+        self.resize(self.width(), m.height)
+        self.move(m.width-270, 0)
+
     def handlers_connect(self):
         self.accept.clicked.connect(self.change_size)
         self.addSubLayersButton.clicked.connect(self.calc_intermediate_layers)

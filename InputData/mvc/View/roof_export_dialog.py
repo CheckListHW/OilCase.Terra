@@ -6,7 +6,7 @@ from PyQt5.QtWidgets import QDialog
 
 from InputData.mvc.Model.map import ExportRoof, Map
 from InputData.resource.strings import main_icon, TitleName
-from InputData.utils.file import FileEdit
+from utils.file import FileEdit
 
 
 class RoofExportDialog(QDialog):
@@ -21,7 +21,7 @@ class RoofExportDialog(QDialog):
         self.buttonBox.accepted.connect(self.export)
 
     def export(self):
-        file = FileEdit(self)
+        file = FileEdit()
         path = file.create_file(filename=self.fileNameLineEdit.text())
         ExportRoof(self.data_map, path=path, initial_depth=self.initialDepthSpinBox.value(),
                    step_depth=self.stepDepthDoubleSpinBox.value())

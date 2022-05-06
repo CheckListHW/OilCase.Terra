@@ -64,3 +64,7 @@ class SurfaceEditWindow(QMainWindow):
         self.modeName.setText(str(mode).replace('ModeStatus.', ''))
         self.surface_editor.set_mode(mode)
         self.surface_editor.update_plot()
+
+    def closeEvent(self, a0) -> None:
+        super(SurfaceEditWindow, self).closeEvent(a0)
+        self.view_layers_window.close()
