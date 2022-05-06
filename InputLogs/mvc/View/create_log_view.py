@@ -76,7 +76,8 @@ class CreateLog(QMainWindow):
             self.rangeFrame.hide()
 
     def add_curves_to_formula(self):
-        self.formulaLineEdit.setText(self.formulaLineEdit.text() + '{' + self.curvesNameComboBox.currentText() + '}')
+        self.formulaLineEdit.setText(
+            self.formulaLineEdit.text() + '{' + self.curvesNameComboBox.currentText() + '}')
 
     def change_name_oil_water_type(self, name: str):
         if name == 'O' and self.oilCurveCheckBox.isChecked():
@@ -98,7 +99,8 @@ class CreateLog(QMainWindow):
 
     def get_log_name(self):
         name = self.nameLineEdit.text()
-        log_name = (name + '|' + self.layerNameComboBox.currentText() + '|' + self.oil_water_name + '|')
+        log_name = (
+                    name + '|' + self.layerNameComboBox.currentText() + '|' + self.oil_water_name + '|')
         while log_name.__contains__('||'):
             log_name = log_name.replace('||', '|')
         return log_name
@@ -114,7 +116,7 @@ class CreateLog(QMainWindow):
             if len(log_name) <= 1:
                 self.expressionValidLabel.setText(ErrorMessage.EmptyName)
                 return
-            self.data_map.add_logs(Log(name=log_name, min=min_value, max=max_value))
+            self.data_map.add_logs(Log(self.data_map, name=log_name, min=min_value, max=max_value))
             self.update()
 
     def delete_log(self, name: str):

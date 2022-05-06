@@ -10,7 +10,6 @@ from scipy.interpolate import interp1d
 from utils.ceil import ceil
 from utils.json_in_out import JsonInOut
 from utils.time_work import MyTimer
-from InputLogs.cython.trend.trend_x import trend as c_trend
 
 
 class Log(JsonInOut):

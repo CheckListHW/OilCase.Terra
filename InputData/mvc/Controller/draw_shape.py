@@ -63,7 +63,7 @@ class DrawVoxels:
 
             # include_not_primary
             i_n_t, _ = (True, shape.calc_intermediate_layers()) \
-                if self.map.draw_speed == 'Simple' else (False,  shape.delete_secondary_surface())
+                if self.map.draw_speed == 'Simple' else (False, shape.delete_secondary_surface())
 
             main_layers = [lay for lay in shape.layers if (lay.primary or i_n_t) and lay.x != []]
 
@@ -90,12 +90,14 @@ class DrawVoxels:
 
     def draw_all_polygon(self):
         self.plot3d.ax.clear()
-        self.repeat, self.map.data, main_data, self.all_polygon = {}, {}, [], np.zeros([1, 1, 1], dtype=bool)
+        self.repeat, self.map.data, main_data, self.all_polygon = {}, {}, [], np.zeros([1, 1, 1],
+                                                                                       dtype=bool)
         for shape in self.map.get_visible_shapes():
             shape.calc_intermediate_layers()
             data = self.calc_polygon_in_draw(shape)
-            self.map.data[f'{shape.name}|{shape.sub_name}'] = dict_update(self.map.data.get(shape.name),
-                                                                          transform_data(data))
+            self.map.data[f'{shape.name}|{shape.sub_name}'] = dict_update(
+                self.map.data.get(shape.name),
+                transform_data(data))
             colors = np.empty(list(data.shape) + [4], dtype=np.float32)
             r, g, b = shape.color
             colors[:] = [r / 255, g / 255, b / 255, shape.alpha]
@@ -110,8 +112,9 @@ class DrawVoxels:
     def calc_polygon_in_draw(self, fig: Shape) -> []:
         roof = self.map.roof_profile.get_x_y_offset(base=max(self.map.size.x, self.map.size.y))
         roof = [[0 if fig.filler else j for j in i] for i in roof]
-        x_size, y_size, z_size = self.map.size.x, self.map.size.y, int(fig.height + max(a for b in roof for a in b) + 1)
-        data = np.zeros([x_size, y_size, z_size], dtype=bool)
+        z_size = int(fig.height + max(a for b in roof for a in b) + 1)
+
+        data = np.zeros([self.map.size.x, self.map.size.y, z_size], dtype=bool)
 
         self.all_polygon.resize([max(x) for x in zip(data.shape, self.all_polygon.shape)])
 
