@@ -9,24 +9,24 @@ from scipy.interpolate import griddata
 
 from InputData.mvc.Model.roof_profile import RoofProfile
 from InputData.mvc.Model.surface import Surface
-from utils.geometry.nearst_dot import nearst_dot_index, nearst_line_index, dot_to_border
+from utils.geometry.nearest_dot import nearest_dot_index, nearest_line_index, dot_to_border
 # x - width, y - length
 from utils.geometry.simplify_line import simplify_line, polyline
 from InputData.resource.digit_value import Limits
 
 
-def draw_polygon(x, y, ax, size=1, color='brown'):
+def draw_polygon(x, y, ax, size=1):
     int_x, int_y = int(x), int(y)
     ax.fill([int_x, int_x + size, int_x + size, int_x, int_x],
-            [int_y, int_y, int_y + size, int_y + size, int_y])  # , color=color)
+            [int_y, int_y, int_y + size, int_y + size, int_y])
 
 
 class EditSurface:
-    __slots__ = 'ax', 'surface', 'grid_off', 'fig', 'nearst_dot_index', 'line_dot_index',
+    __slots__ = 'ax', 'surface', 'grid_off', 'fig', 'nearest_dot_index', 'line_dot_index',
 
-    def __init__(self, surf: Surface, fig=None, ax=None):
+    def __init__(self, surf: Optional[Surface], fig=None, ax=None):
         self.surface = surf
-        self.grid_off, self.line_dot_index, self.nearst_dot_index = False, 999, 0
+        self.grid_off, self.line_dot_index, self.nearest_dot_index = False, 999, 0
         self.fig = fig if fig else plt.figure()
         self.ax = ax if ax else self.fig.add_subplot(111)
 
@@ -81,7 +81,8 @@ class EditSurface:
             def size_round(value: float, step: float) -> float:
                 return round(value * (Limits.BASEPLOTSCALE / step)) * step
 
-            step_x, step_y = Limits.BASEPLOTSCALE / self.surface.size.x, Limits.BASEPLOTSCALE / self.surface.size.y
+            step_x = Limits.BASEPLOTSCALE / self.surface.size.x
+            step_y = Limits.BASEPLOTSCALE / self.surface.size.y
             if a[0] is not None:
                 a = (size_round(a[0], step_x), size_round(a[1], step_y))
                 self.ax.scatter(a[0], a[1], color='red')
@@ -110,17 +111,17 @@ class EditSurface:
     def choose_dot(self, x: float, y: float) -> Optional[int]:
         self.update_plot()
         dots_x, dots_y = self.surface.curve
-        self.nearst_dot_index = nearst_dot_index(dots_x, dots_y, x, y)
-        if self.nearst_dot_index is None:
+        self.nearest_dot_index = nearest_dot_index(dots_x, dots_y, x, y)
+        if self.nearest_dot_index is None:
             return None
         else:
-            x1, y1 = dots_x[self.nearst_dot_index], dots_y[self.nearst_dot_index]
+            x1, y1 = dots_x[self.nearest_dot_index], dots_y[self.nearest_dot_index]
             self.ax.scatter(x1, y1, color='red')
-            return self.nearst_dot_index
+            return self.nearest_dot_index
 
     def move_dot(self, x: float, y: float):
         if x and y:
-            self.surface.dot_value_change(self.nearst_dot_index, x, y)
+            self.surface.dot_value_change(self.nearest_dot_index, x, y)
             self.update_plot()
 
     def start_draw_curve(self, x: float, y: float):
@@ -147,7 +148,7 @@ class EditSurface:
             dots_x, dots_y = self.surface.curve
             self.draw_curve(dots_x, dots_y)
 
-            _, self.line_dot_index = a, b = nearst_line_index(dots_x, dots_y, x, y)
+            _, self.line_dot_index = a, b = nearest_line_index(dots_x, dots_y, x, y)
             try:
                 self.ax.scatter(dots_x[a], dots_y[a], color='red')
                 self.ax.scatter(dots_x[b], dots_y[b], color='red')
@@ -156,7 +157,8 @@ class EditSurface:
 
     def add_split_dot(self, x1: float, y1: float, start_line: bool = True):
         x1, y1 = dot_to_border(x1, y1, Limits.BASEPLOTSCALE)
-        self.surface.change_dot_split(x1 / Limits.BASEPLOTSCALE, y1 / Limits.BASEPLOTSCALE, start_line)
+        self.surface.change_dot_split(x1 / Limits.BASEPLOTSCALE,
+                                      y1 / Limits.BASEPLOTSCALE, start_line)
         self.update_plot()
 
     def add_dot(self, x, y):
@@ -171,6 +173,15 @@ class EditSurface:
     def draw_curve(self, dots_x, dots_y):
         if dots_y and dots_x:
             self.draw_line(dots_x + [dots_x[0]], dots_y + [dots_y[0]])
+
+
+def get_points_val(roof_profile: RoofProfile, base=Limits.BASEPLOTSCALE):
+    points = np.array([[0, 0], [0, base], [base, 0], [base, base]] +
+                      [[p.x, p.y] for p in roof_profile.points])
+
+    ll, lr, ul, ur = roof_profile.values_corner_points.values()
+    val = np.array([ll, lr, ul, ur] + [p.z for p in roof_profile.points])
+    return points, val
 
 
 class EditRoofProfileSurface(EditSurface):
@@ -194,22 +205,15 @@ class EditRoofProfileSurface(EditSurface):
     def choose_dot(self, x: float, y: float):
         self.update_plot()
         x_list, y_list = self.roof_profile.get_x_y()
-        self.nearst_dot_index = nearst_dot_index(x_list, y_list, x, y)
-        if self.nearst_dot_index is not None:
-            self.ax.scatter(x_list[self.nearst_dot_index], y_list[self.nearst_dot_index], marker='.', linewidths=5)
+        self.nearest_dot_index = nearest_dot_index(x_list, y_list, x, y)
+        if self.nearest_dot_index is not None:
+            self.ax.scatter(x_list[self.nearest_dot_index], y_list[self.nearest_dot_index],
+                            marker='.', linewidths=5)
 
     def move_dot(self, x: float, y: float):
         if x and y:
-            self.roof_profile.points[self.nearst_dot_index].change(x, y, None)
+            self.roof_profile.points[self.nearest_dot_index].change(x, y, None)
             self.update_plot()
-
-    def get_points_val(self, roof_profile: RoofProfile, base=Limits.BASEPLOTSCALE):
-        points = np.array([[0, 0], [0, base], [base, 0], [base, base]] +
-                          [[p.x, p.y] for p in roof_profile.points])
-
-        ll, lr, ul, ur = roof_profile.values_corner_points.values()
-        val = np.array([ll, lr, ul, ur] + [p.z for p in roof_profile.points])
-        return points, val
 
     def update_plot(self):
         self.ax.clear()
@@ -217,9 +221,10 @@ class EditRoofProfileSurface(EditSurface):
 
         if len(self.roof_profile.points) > 0:
             base = Limits.BASEPLOTSCALE
-            points, val = self.get_points_val(self.roof_profile)
+            points, val = get_points_val(self.roof_profile)
             grid_x, grid_y = np.mgrid[0:base:25j, 0:base:25j]
-            grid_z = griddata(points, val, (grid_x, grid_y), method=self.roof_profile.interpolate_method)
+            grid_z = griddata(points, val, (grid_x, grid_y),
+                              method=self.roof_profile.interpolate_method)
 
             self.ax.imshow(grid_z.T, extent=(0, base, 0, base), origin='lower')
         for point, i in zip(self.roof_profile.points, range(len(self.roof_profile.points))):
@@ -229,16 +234,12 @@ class EditRoofProfileSurface(EditSurface):
     def show3d(self):
         if len(self.roof_profile.points) > 0:
             base = Limits.BASEPLOTSCALE
-            points, val = self.get_points_val(self.roof_profile)
+            points, val = get_points_val(self.roof_profile)
             grid_x, grid_y = np.mgrid[0:base:25j, 0:base:25j]
-            grid_z = griddata(points, val, (grid_x, grid_y), method=self.roof_profile.interpolate_method)
+            grid_z = griddata(points, val, (grid_x, grid_y),
+                              method=self.roof_profile.interpolate_method)
 
             fig = plt.figure()
             ax = fig.add_subplot(projection='3d')
             ax.plot_wireframe(grid_x, grid_y, grid_z)
             plt.show()
-
-
-if __name__ == "__main__":
-    mPlt = EditSurface()
-    plt.show()

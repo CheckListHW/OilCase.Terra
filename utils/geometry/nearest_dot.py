@@ -1,7 +1,7 @@
 from typing import Optional
 
 
-def nearst_dot_index(dots_x, dots_y, x, y) -> Optional[int]:
+def nearest_dot_index(dots_x, dots_y, x, y) -> Optional[int]:
     if len(dots_x) < 1:
         return None
 
@@ -16,7 +16,7 @@ def nearst_dot_index(dots_x, dots_y, x, y) -> Optional[int]:
     return j
 
 
-def nearst_line_index(dots_x, dots_y, x, y):
+def nearest_line_index(dots_x, dots_y, x, y):
     if len(dots_x) < 1:
         return None, None
 
@@ -26,7 +26,7 @@ def nearst_line_index(dots_x, dots_y, x, y):
         centers_lines_x.append((dots_x[i-1] + dots_x[i])/2)
         centers_lines_y.append((dots_y[i-1] + dots_y[i])/2)
 
-    index = nearst_dot_index(centers_lines_x, centers_lines_y, x, y)
+    index = nearest_dot_index(centers_lines_x, centers_lines_y, x, y)
 
     return index, index+1
 

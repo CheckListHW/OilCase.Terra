@@ -32,6 +32,7 @@ class Plot3d:
 
 class DrawVoxels:
     def __init__(self, map_val: Map, plot3d=None):
+        self.repeat = {}
         self.map = map_val
         self.all_polygon = np.zeros([1, 1, 1], dtype=bool)
         self.plot3d = plot3d if plot3d else Plot3d()

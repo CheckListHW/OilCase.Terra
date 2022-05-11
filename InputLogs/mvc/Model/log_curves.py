@@ -63,9 +63,9 @@ class Log(JsonInOut):
         x, y = point
 
         keys = set(self._trend.keys()) - {'0', '1'}
-        nearst = [(y1, abs(y - float(y1))) for y1 in keys]
+        nearest = [(y1, abs(y - float(y1))) for y1 in keys]
 
-        self._trend.pop(min(nearst, key=lambda i: i[1])[0])
+        self._trend.pop(min(nearest, key=lambda i: i[1])[0])
 
     def get_text(self) -> str:
         min_max = (f"min = {self.min}, max = {self.max}" if self.max or self.min else self.text_expression)

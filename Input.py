@@ -7,7 +7,6 @@ from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QHBoxLayout
 
 from InputData.mvc.View.shapes_edit_view import ShapeEditWindow
 from InputData.resource.strings import main_icon
-from InputLogs.mvc.Model.map import Map
 from InputLogs.mvc.View.input_log_view import InputLogView
 from utils.file import FileEdit
 from utils.log.log_file import print_log
@@ -51,7 +50,6 @@ class InputDataLogs(QWidget):
         self.setWindowIcon(QIcon(main_icon()))
         self.setFixedSize(300, 70)
 
-
     def open_project(self):
         self.file_edit.open_project()
         project_name = self.file_edit.project_path.split("/")[-1]
@@ -65,6 +63,7 @@ class InputDataLogs(QWidget):
 
     def closeEvent(self, a0) -> None:
         os._exit(1)
+
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)

@@ -32,7 +32,7 @@ def split_shape_with_start_param(cur_shape: Shape, x_off, y_off) -> (Shape, Shap
 
     r, g, b = cur_shape.color
     ceil: () = lambda i, m: sorted([0, i, m])[1]
-    similar_color = lambda val: ceil(int((val + 0.5 * val * (random.random() - 0.5))), 255)
+    similar_color: () = lambda val: ceil(int((val + 0.5 * val * (random.random() - 0.5))), 255)
 
     a_shape.color = (similar_color(i) for i in [r, g, b])
     b_shape.color = (similar_color(i) for i in [r, g, b])
@@ -44,9 +44,9 @@ def split_shape_with_start_param(cur_shape: Shape, x_off, y_off) -> (Shape, Shap
 
 # alpha - прозрачность от 0 до 1
 class ShapeProperty(Subject):
-    __slots__ = 'size', 'visible', '_alpha', 'sub_name', '_priority', '_color', 'name', 'x_offset', 'y_offset', \
-                'layers', 'split_shapes', 'parts_property', 'presence_intermediate_layers', \
-                '_filler', '_offset'
+    __slots__ = 'size', 'visible', '_alpha', 'sub_name', '_priority', '_color', 'name', \
+                'x_offset', 'y_offset', 'layers', 'split_shapes', \
+                'parts_property', 'presence_intermediate_layers', '_filler', '_offset'
 
     def __init__(self, size: Size):
         super(ShapeProperty, self).__init__()
@@ -56,7 +56,8 @@ class ShapeProperty(Subject):
         self.presence_intermediate_layers = False
         self.name: str = 'Enter a layer name'
         self.sub_name = ''
-        self._color: (int, int, int) = (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
+        r: () = lambda: random.randint(0, 255)
+        self._color: (int, int, int) = (r(), r(), r())
         self.size = size
 
         self.parts_property = {}  # name: ShapeProperty
@@ -113,8 +114,8 @@ class ShapeProperty(Subject):
     def height_with_offset(self) -> int:
         layers = self.layers.copy()
         for shape in self.split_shapes:
-            for l in shape.layers:
-                layers.append(l)
+            for lay in shape.layers:
+                layers.append(lay)
         return max(layers, key=lambda i: i.z).z
 
     @property
@@ -137,7 +138,8 @@ class ShapeProperty(Subject):
     def load_from_dict(self, data_dict: dict):
         for name_property in data_dict:
             if name_property == 'layers':
-                self.layers = [Surface(size=self.size, load_dict=lay_dict) for lay_dict in data_dict[name_property]]
+                self.layers = [Surface(size=self.size, load_dict=lay_dict) for lay_dict in
+                               data_dict[name_property]]
             elif name_property == 'parts_property':
                 self.parts_property = {}
                 for part_name in data_dict[name_property]:
@@ -146,7 +148,8 @@ class ShapeProperty(Subject):
             else:
                 if hasattr(self, name_property):
                     if hasattr(self.__getattribute__(name_property), 'load_from_dict'):
-                        self.__getattribute__(name_property).load_from_dict(data_dict[name_property])
+                        self.__getattribute__(name_property).load_from_dict(
+                            data_dict[name_property])
                     else:
                         self.__setattr__(name_property, data_dict[name_property])
         self.notify()
@@ -171,7 +174,8 @@ class Shape(ShapeProperty):
             lay.x = [x + a_offset * shape.x_offset for x in lay.x]
             lay.y = [y + a_offset * shape.y_offset for y in lay.y]
 
-    def __prepare_layer_for_split(self, lay_main, a_shape: Shape, b_shape: Shape) -> (Surface, Surface):
+    def __prepare_layer_for_split(self, lay_main, a_shape: Shape, b_shape: Shape) -> \
+            (Surface, Surface):
         a_shape.layers.append(lay_main.get_copy())
         b_shape.layers.append(lay_main.get_copy())
         a_shape.layers[-1].size = b_shape.layers[-1].size = self.size
@@ -193,7 +197,8 @@ class Shape(ShapeProperty):
             ([float], [float]), ([float], [float]), Point, Point):
         a_x, a_y, b_x, b_y = split.line.a.x, split.line.a.y, split.line.b.x, split.line.b.y
 
-        level = lay_main.z if split.from_start else max(self.layers, key=lambda i: i.z).z - lay_main.z
+        level = lay_main.z if split.from_start else max(self.layers,
+                                                        key=lambda i: i.z).z - lay_main.z
         level -= sorted(self.layers, key=lambda i: i.z)[0].z
 
         a_x, a_y = a_x + (x_off * level), a_y + (y_off * level)
@@ -203,7 +208,8 @@ class Shape(ShapeProperty):
         scale = Limits.BASEPLOTSCALE
         a_polygon, b_polygon, split_level = split_square(rectangle(scale, scale), old_split_level)
 
-        x1, x2, y1, y2 = old_split_level.a.x, old_split_level.b.x, old_split_level.a.y, old_split_level.b.y
+        x1, x2 = old_split_level.a.x, old_split_level.b.x
+        y1, y2 = old_split_level.a.y, old_split_level.b.y
         a_sum = sum([(a.x - x1) * (y2 - y1) - (a.y - y1) * (x2 - x1) for a in a_polygon.dots])
         b_sum = sum([(b.x - x1) * (y2 - y1) - (b.y - y1) * (x2 - x1) for b in b_polygon.dots])
         if a_sum < 0 or b_sum > 0:
@@ -316,7 +322,8 @@ class Shape(ShapeProperty):
     def pop_layer(self, index: int):
         if len(self.layers) < 2:
             return
-        index = index if index in range(0, self.height + 1) else 0 if index <= 0 else len(self.layers) - 1
+        index = index if index in range(0, self.height + 1) else 0 if index <= 0 else len(
+            self.layers) - 1
         self.layers.pop(index)
         # self.notify()
 
@@ -354,7 +361,8 @@ class Shape(ShapeProperty):
             self.split_shapes = []
             for cur_shape in copy_split_shapes:
                 a_shape, b_shape = split_shape_with_start_param(cur_shape, x_offset, y_offset)
-                for lay_main in [lay_main for lay_main in cur_shape.layers if len(lay_main.curve[0]) > 1]:
+                for lay_main in [lay_main for lay_main in cur_shape.layers if
+                                 len(lay_main.curve[0]) > 1]:
                     lay_x, lay_y = lay_main.curve
 
                     ((a_poly_x, a_poly_y), (b_poly_x, b_poly_y), a_split, b_split) = \
@@ -367,7 +375,8 @@ class Shape(ShapeProperty):
                         c, d = d, [i, j]
                         if a_split.x is not None:
 
-                            x1, y1 = intersection_segment_dot(a_split, b_split, Point(c[0], c[1]), Point(d[0], d[1]))
+                            x1, y1 = intersection_segment_dot(a_split, b_split, Point(c[0], c[1]),
+                                                              Point(d[0], d[1]))
                             if x1 is not None and y1 is not None:
                                 lay_a.add_dot(x1, y1)
                                 lay_b.add_dot(x1, y1)
@@ -395,9 +404,11 @@ class Shape(ShapeProperty):
             self.split_shapes = []
             return copy_split_shapes
 
-        valid_shapes_names = [i.sub_name for i in self.split_shapes if sum([len(lay.x) for lay in i.layers])]
+        valid_shapes_names = [i.sub_name for i in self.split_shapes if
+                              sum([len(lay.x) for lay in i.layers])]
         self.split_shapes = [i for i in self.split_shapes if i.sub_name in valid_shapes_names]
-        self.parts_property = {k: v for k, v in self.parts_property.items() if k in valid_shapes_names}
+        self.parts_property = {k: v for k, v in self.parts_property.items() if
+                               k in valid_shapes_names}
 
         return self.split_shapes
 
@@ -405,7 +416,8 @@ class Shape(ShapeProperty):
         range_layers = range(len(self.layers))
         if index_a in range_layers and index_b in range_layers:
             self.layers[index_a], self.layers[index_b] = self.layers[index_b], self.layers[index_a]
-            self.layers[index_a].z, self.layers[index_b].z = self.layers[index_b].z, self.layers[index_a].z
+            self.layers[index_a].z, self.layers[index_b].z = self.layers[index_b].z, self.layers[
+                index_a].z
 
     def get_as_dict(self) -> dict:
         self.delete_secondary_surface()

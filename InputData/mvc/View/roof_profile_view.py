@@ -51,10 +51,10 @@ class RoofProfileEditWindow(QMainWindow):
         self.surface_editor.update_plot()
 
     def change_height(self):
-        if self.surface_editor.plot.nearst_dot_index is None:
+        if self.surface_editor.plot.nearest_dot_index is None:
             return
-        if len(self.map.roof_profile.points) > self.surface_editor.plot.nearst_dot_index:
-            self.map.roof_profile.points[self.surface_editor.plot.nearst_dot_index].z \
+        if len(self.map.roof_profile.points) > self.surface_editor.plot.nearest_dot_index:
+            self.map.roof_profile.points[self.surface_editor.plot.nearest_dot_index].z \
                 = self.heightSpinBox.value()
         self.surface_editor.update_plot()
 

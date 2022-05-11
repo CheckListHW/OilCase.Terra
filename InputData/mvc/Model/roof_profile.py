@@ -2,7 +2,7 @@ import numpy as np
 from scipy.interpolate import griddata
 
 from utils.json_in_out import JsonInOut
-from utils.geometry.nearst_dot import nearst_dot_index
+from utils.geometry.nearest_dot import nearest_dot_index
 from InputData.resource.digit_value import Limits
 
 
@@ -35,7 +35,7 @@ class RoofProfile(JsonInOut):
         self.points.append(RoofPoint(x, y, z))
 
     def pop(self, x, y):
-        index = nearst_dot_index([p.x for p in self.points], [p.y for p in self.points], x, y)
+        index = nearest_dot_index([p.x for p in self.points], [p.y for p in self.points], x, y)
         if index in range(len(self.points)):
             self.points.pop(index)
 

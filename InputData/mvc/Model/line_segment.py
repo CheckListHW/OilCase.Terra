@@ -35,11 +35,11 @@ class LineSegment(JsonInOut):
                 if hasattr(self, name_property):
                     self.__setattr__(name_property, load_dict[name_property])
 
-
     def get_scale_line(self, scale_x, scale_y) -> LineSegment:
         a = Point(round(self.a.x * scale_x), round(self.a.y * scale_y))
         b = Point(round(self.b.x * scale_x), round(self.b.y * scale_y))
         return LineSegment(a, b)
+
 
 class PolygonalChain:
     __slots__ = 'dots'
