@@ -29,7 +29,7 @@ def console_excepthook(exc_type, exc_value, exc_tb):
 class InputDataLogs(QWidget):
     def __init__(self):
         super(InputDataLogs, self).__init__()
-        # self.file_edit = FileEdit('C:/Users/KosachevIV/PycharmProjects/Input/Projects/p1.oilcase')
+        # self.file_edit = FileEdit('C:/Users/KosachevIV/PycharmProjects/Input/Projects/P2.oilcase')
         self.file_edit = FileEdit()
         self.data_window = ShapeEditWindow(file_edit=self.file_edit)
         self.log_window = InputLogView(file_edit=self.file_edit)

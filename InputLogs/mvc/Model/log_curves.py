@@ -8,6 +8,7 @@ import numpy as np
 from scipy.interpolate import interp1d
 
 from utils.ceil import ceil
+from utils.gisaug.augmentations import DropRandomPoints, Stretch
 from utils.json_in_out import JsonInOut
 from utils.time_work import MyTimer
 
@@ -102,27 +103,33 @@ class Log(JsonInOut):
     def x(self, value: [float]):
         self._x = value
 
+    def stretch_curve(self, len_x: int, x: [float]) -> [float]:
+        curve = DropRandomPoints(0.95)(np.array(x))
+        return Stretch.stretch_curve_by_count(curve, len_x)
+
     def get_x(self, len_x: int):
         if self.text_expression and self.data_map:
             e_log = ExpressionLog(self.data_map, self.text_expression)
             if e_log():
-                return e_log.x
+                return self.stretch_curve(len_x, e_log.x)
+
         if self._x:
-            return self._x
+            return self.stretch_curve(len_x, self._x)
+
         if self.max is not None and self.min is not None:
             x = self.trend_x(len_x)
             return x
-
         else:
             return [0 for _ in range(len_x)]
 
     def trend_x(self, len_x: int):
-        MyTimer.check_start('1')
-        from InputLogs.resourse.limits import MAX_TREND_RATIO
-        # x = c_trend(self.min, self.max, self.dispersion, len_x, self.f_trend_init(), MAX_TREND_RATIO)
         x = trend(self.min, self.max, self.dispersion, len_x, self.f_trend_init())
-        MyTimer.check_finish('1')
         return x
+
+    def get_as_dict(self) -> dict:
+        data: dict = super(Log, self).get_as_dict()
+        data.pop('data_map')
+        return data
 
 
 def trend(min_x: int, max_x: int, dispersion: float, len_x: int, f_trend: ()) -> [float]:

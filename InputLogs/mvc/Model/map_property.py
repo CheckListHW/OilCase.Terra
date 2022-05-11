@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import random
 from typing import Union, Optional
 
@@ -77,7 +79,8 @@ class ColumnIntervals:
 class MapProperty:
     __slots__ = 'columns', 'body_names', 'attach_logs', '_visible_names', 'core_samples', 'settings', \
                 'interval_data', 'max_x', 'max_y', 'max_z', 'path_map', 'owc', 'export_data', \
-                'all_logs', 'export', 'percent_safe_core', 'initial_depth', 'step_depth', 'select_log'
+                'all_logs', 'export', 'percent_safe_core', 'initial_depth', 'step_depth', \
+                'select_log', 'path_map'
 
     def __init__(self, path_map: Optional[str] = None, path_log: Optional[str] = None):
         self.columns, self.interval_data = {}, {}
@@ -91,9 +94,15 @@ class MapProperty:
         self.initial_depth = 2000
 
         if path_map:
+            self.path_map = path_map
             self.load_map(dict_from_json(path_map))
         if path_log:
             self.load_log(dict_from_json(path_log))
+
+    def map_copy(self) -> MapProperty:
+        map_c = MapProperty(path_map=self.path_map)
+        map_c.load_log(self.save())
+        return map_c
 
     @property
     def visible_names(self) -> [str]:
@@ -324,8 +333,6 @@ class MapProperty:
 
             interval = range(int(s), int(e) + 1)
             if len(interval) >= 1:
-                # curve = DropRandomPoints(0.95)(np.array(log.get_x(len(interval))))
-                # curve = Stretch.stretch_curve_by_count(curve, len(interval))
                 curve = log.get_x(len(interval))
 
                 col_intervals.append((curve, name, interval))

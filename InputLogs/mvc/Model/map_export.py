@@ -55,11 +55,10 @@ class ExportLogs:
         print_log('Start transform data')
 
         self.data_map.export_data = None
-        data_map = MapProperty(data=self.data_map.save())
+        data_map = self.data_map.map_copy()
 
         r: () = lambda i: round(i, 5) if i is float else i
 
-        MyTimer.start()
         coors, data = [(x1, y1) for x1 in range(data_map.max_x + 1) for y1 in range(data_map.max_y + 1)], {}
 
         for log_name in data_map.main_logs_name_non_expression():
@@ -74,7 +73,6 @@ class ExportLogs:
                         if not data.get(ceil_name):
                             data[ceil_name] = {'i': x + 1, 'j': y + 1, 'index': y1[i], 'Lithology': lith}
                         data[ceil_name][log_name] = r(x1[i])
-        MyTimer.finish()
 
         data = add_height_above_fwl(data, data_map.owc)
         data = index_to_depth(data, lambda i: i * self.data_map.step_depth + self.data_map.initial_depth)

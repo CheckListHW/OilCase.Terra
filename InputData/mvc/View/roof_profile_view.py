@@ -22,7 +22,6 @@ class RoofProfileEditWindow(QMainWindow):
 
         self.map = map_value
         self.surface_editor = EditorRoofProfileController(map=self.map, parent=self.draw_polygon_frame)
-        self.view_layers_window = ViewingLayersWindow(self.surface_editor)
 
         self.button_connect()
         self.surface_editor.update_plot()

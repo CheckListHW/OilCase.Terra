@@ -1,8 +1,6 @@
-import csv
 import math
 
 import numpy as np
-import openpyxl
 import pandas as pd
 from PyQt5.QtWidgets import QMessageBox
 from matplotlib import pyplot as plt

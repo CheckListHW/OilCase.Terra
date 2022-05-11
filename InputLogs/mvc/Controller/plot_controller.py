@@ -171,6 +171,9 @@ class PlotLogController(PlotController):
         if col_interval:
             x = [a for b in [x for x, _, _ in col_interval.intervals] for a in b]
             y = [a for b in [y for _, _, y in col_interval.intervals] for a in b]
+            if len(x) != len(y):
+                print(len(x), len(y))
+                print([y for y in col_interval.intervals])
             self.ax.plot(x, y, color='black')
 
             min_axes_x, max_axes_x, pre_max_y = col_interval.min, col_interval.max, 0

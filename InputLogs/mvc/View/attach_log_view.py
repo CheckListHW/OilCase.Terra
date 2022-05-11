@@ -60,6 +60,7 @@ class AttachLogView(QMainWindow):
             name_lbl = QLabel(main_lay_name.replace('|', ' '))
             name_lbl.setAlignment(Qt.AlignCenter)
             widgets.append(name_lbl)
+
             for lay_name, log_name in sorted(self.data_map.attach_list(), key=lambda i: i[1]):
                 if (not get_main_name(lay_name).__contains__(main_lay_name)) \
                         or get_main_name(lay_name) + log_name in skip_list:
@@ -69,6 +70,7 @@ class AttachLogView(QMainWindow):
                 log = self.data_map.get_logs_by_name(log_name)
 
                 detach_list = [(sub_lay_name, log_name) for sub_lay_name in name_groups[get_main_name(lay_name)]]
+                print(detach_list)
 
                 del_btn = QPushButton('❌')
                 del_btn.setMaximumWidth(30)

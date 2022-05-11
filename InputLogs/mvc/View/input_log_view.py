@@ -59,7 +59,6 @@ class InputLogView(QMainWindow):
     def showEvent(self, a0) -> None:
         super(InputLogView, self).showEvent(a0)
         if self.file_edit.log_path:
-            print(self.file_edit.log_path)
             self.__open_file()
 
     def set_tips(self):
@@ -174,7 +173,7 @@ class InputLogView(QMainWindow):
         self.sub_window.closeEvent = lambda a0: self.update_info()
 
     def save_file(self):
-        self.file_edit.save_file(self.data_map.save())
+        self.file_edit.save_log(self.data_map.save())
 
     def open_file(self):
         self.file_edit.open_project()
@@ -182,7 +181,6 @@ class InputLogView(QMainWindow):
 
     def __open_file(self):
         self.toolsWidget.show()
-        print(self.file_edit.polygon_model_path, self.file_edit.log_path)
         self.data_map.load(self.file_edit.polygon_model_path, self.file_edit.log_path)
         self.update_info()
 
