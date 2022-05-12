@@ -6,13 +6,13 @@ from PyQt5.QtWidgets import QMainWindow, QFileDialog, QComboBox
 
 from InputData.mvc.Controller.edit_plot_modes import ModeStatus
 from InputData.mvc.Controller.qt_matplotlib_connector import EditorSurfaceController
-from InputData.mvc.Model.shape import Shape
+from InputData.mvc.Model.lithology import Lithology
 from InputData.mvc.View.surface_choose_view import ViewingLayersWindow
-from InputData.resource.strings import Tips, main_icon, TitleName
+from res.strings import Tips, main_icon, TitleName
 
 
 class SurfaceEditWindow(QMainWindow):
-    def __init__(self, single_surface=False, shape: Shape = None):
+    def __init__(self, single_surface=False, shape: Lithology = None):
         super(SurfaceEditWindow, self).__init__()
         uic.loadUi(os.environ['project'] + '/ui/surface_edit.ui', self)
 
@@ -49,7 +49,7 @@ class SurfaceEditWindow(QMainWindow):
         self.add_tips()
 
     def add_tips(self):
-        self.simplifyButton.setToolTip(Tips.SIMPLIFYBUTTON)
+        self.simplifyButton.setToolTip(Tips.SIMPLIFY_BUTTON)
 
     def change_current_split(self):
         x: QComboBox = self.splitNumberComboBox

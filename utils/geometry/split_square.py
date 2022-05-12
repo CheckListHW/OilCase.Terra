@@ -7,19 +7,22 @@ def rectangle(x: float, y: float) -> PolygonalChain:
     return PolygonalChain([0, x, x, 0, 0], [0, 0, y, y, 0])
 
 
-def split_square(square: PolygonalChain, line: LineSegment) -> (PolygonalChain, PolygonalChain, LineSegment):
-    chain1, chain2, real_split_line = PolygonalChain(), PolygonalChain(), LineSegment(Point(), Point())
+def split_square(square: PolygonalChain, line: LineSegment) -> \
+        (PolygonalChain, PolygonalChain, LineSegment):
+    real_split_line = LineSegment(Point(), Point())
+    chain1, chain2 = PolygonalChain([], []), PolygonalChain([], [])
 
     d, first, counter = [square.dots[0].x, square.dots[0].y], False, 1
 
     for i, j in zip(square.get_x(), square.get_y()):
         c, d = d, [i, j]
-        x1, y1 = intersection_segment_dot(line.a, line.b, Point(c[0], c[1]), Point(d[0], d[1]), vector=True)
+        x1, y1 = intersection_segment_dot(line.a, line.b, Point(c[0], c[1]), Point(d[0], d[1]),
+                                          vector=True)
 
         if x1 is not None and y1 is not None:
 
-            if not (min(square.get_x()) <= x1 <= max(square.get_x()) and min(square.get_y()) <= y1 <= max(
-                    square.get_y())):
+            if not (min(square.get_x()) <= x1 <= max(square.get_x()) and
+                    min(square.get_y()) <= y1 <= max(square.get_y())):
                 x1, y1 = None, None
             else:
                 if real_split_line.a.x is None:

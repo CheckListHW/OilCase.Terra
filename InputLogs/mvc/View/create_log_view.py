@@ -10,7 +10,7 @@ from InputLogs.mvc.Model.log_curves import Log, ExpressionLog
 from InputLogs.mvc.Model.map import Map
 from InputLogs.mvc.View.help_veiws import LogCreateHelp
 from InputLogs.mvc.View.trend_view import TrendView
-from InputLogs.resourse.strings import ErrorMessage, Tips
+from res.strings import ErrorMessage, Tips
 from utils.file import FileEdit, mass_from_xlsx
 from utils.create_layout import create_frame, clear_layout
 
@@ -99,8 +99,7 @@ class CreateLog(QMainWindow):
 
     def get_log_name(self):
         name = self.nameLineEdit.text()
-        log_name = (
-                    name + '|' + self.layerNameComboBox.currentText() + '|' + self.oil_water_name + '|')
+        log_name = f'{name}|{self.layerNameComboBox.currentText()}|{self.oil_water_name}|'
         while log_name.__contains__('||'):
             log_name = log_name.replace('||', '|')
         return log_name

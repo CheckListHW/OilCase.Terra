@@ -10,8 +10,10 @@ class Point(JsonInOut):
 
     def __init__(self, x: Optional[Optional[float]] = None, y: Optional[float] = None,
                  z: Optional[float] = None, load_dict: dict = None):
-        self.set(x, y, z)
-
+        self.x = x
+        self.y = y
+        self.z = z
+        
         if load_dict:
             self.load_from_dict(load_dict)
 

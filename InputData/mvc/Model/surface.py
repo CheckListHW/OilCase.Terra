@@ -7,7 +7,7 @@ from InputData.mvc.Model.line_segment import LineSegment
 from InputData.mvc.Model.point import Point
 from InputData.mvc.Model.size import Size
 from utils.recursive_extraction_of_list import recursive_extraction
-from InputData.resource.digit_value import Limits
+from res.strings import Limits
 
 
 class SurfacePropertyMemento:
@@ -80,10 +80,10 @@ class SurfaceProperty:  # z - высота слоя
 
     @z.setter
     def z(self, value: int):
-        if value in range(Limits.MINHEIGHT, Limits.MAXHEIGHT + 1):
+        if value in range(Limits.MIN_HEIGHT, Limits.MAX_HEIGHT + 1):
             self._z = value
-        elif value > Limits.MAXHEIGHT:
-            self._z = Limits.MAXHEIGHT
+        elif value > Limits.MAX_HEIGHT:
+            self._z = Limits.MAX_HEIGHT
 
     @property
     def curve(self) -> ([float], [float]):
@@ -100,8 +100,8 @@ class SurfaceProperty:  # z - высота слоя
     def scalable_curve(self) -> ([float], [float]):
         x, y = self.curve
         if self.size:
-            x = [i * (self.size.x / Limits.BASEPLOTSCALE) for i in x]
-            y = [i * (self.size.y / Limits.BASEPLOTSCALE) for i in y]
+            x = [i * (self.size.x / Limits.BASE_PLOT_SCALE) for i in x]
+            y = [i * (self.size.y / Limits.BASE_PLOT_SCALE) for i in y]
         return x, y
 
     def get_min_x_and_y(self):
@@ -132,9 +132,11 @@ class SurfaceProperty:  # z - высота слоя
         for slot in SurfaceProperty.__slots__:
             attribute_name = slot.replace('__', '')
             if hasattr(from_property.__getattribute__(attribute_name), "copy"):
-                to_property.__setattr__(attribute_name, deepcopy(from_property.__getattribute__(attribute_name)))
+                copy_attribute = deepcopy(from_property.__getattribute__(attribute_name))
+                to_property.__setattr__(attribute_name, copy_attribute)
             else:
-                to_property.__setattr__(attribute_name, from_property.__getattribute__(attribute_name))
+                attribute = from_property.__getattribute__(attribute_name)
+                to_property.__setattr__(attribute_name, attribute)
 
     def set_from_copy(self, copy: SurfaceProperty):
         self.__copying(copy, self)

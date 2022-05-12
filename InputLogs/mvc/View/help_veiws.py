@@ -1,6 +1,6 @@
 from PyQt5.QtWidgets import QWidget, QHBoxLayout, QLabel
 
-from InputLogs.resourse.strings import Tips
+from res.strings import Tips
 
 
 class HelpWidget(QWidget):

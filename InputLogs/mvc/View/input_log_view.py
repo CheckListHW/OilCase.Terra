@@ -16,7 +16,7 @@ from InputLogs.mvc.View.create_core_sample_view import CreateCoreSampleView
 from InputLogs.mvc.View.create_log_view import CreateLog
 from InputLogs.mvc.View.owc_edit_view import OwcEditView
 from InputLogs.mvc.View.setiings_view import SettingsView
-from InputLogs.resourse.strings import TitleName, main_icon, Tips
+from res.strings import TitleName, main_icon, Tips
 from utils.file import FileEdit
 from utils.log.log_file import read_log
 
@@ -33,7 +33,7 @@ class InputLogController:
 class InputLogView(QMainWindow):
     def __init__(self, file_edit=FileEdit()):
         super(InputLogView, self).__init__()
-        uic.loadUi(environ['project'] + '/ui/log_input_form.ui', self)
+        uic.loadUi(environ['project'] + '/ui/input_log_main.ui', self)
 
         self.setWindowTitle(TitleName.InputLogView)
         self.setWindowIcon(QIcon(main_icon()))
@@ -64,8 +64,8 @@ class InputLogView(QMainWindow):
     def set_tips(self):
         self.chooseLayerComboBox.setToolTip(Tips.ChooseLayer)
         self.chooseLogButton.setToolTip(Tips.AddLogWindow)
-        self.createCoreSampleButton.setToolTip(Tips.СreateCoreSampleWindow)
-        self.owcButton.setToolTip(Tips.СreateOWCWindow)
+        self.createCoreSampleButton.setToolTip(Tips.CreateCoreSampleWindow)
+        self.owcButton.setToolTip(Tips.CreateOWCWindow)
         self.attachLogButton.setToolTip(Tips.AttachLogWindow)
         self.logSelectComboBox.setToolTip(Tips.LogSelect)
 

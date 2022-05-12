@@ -3,7 +3,7 @@ from scipy.interpolate import griddata
 
 from utils.json_in_out import JsonInOut
 from utils.geometry.nearest_dot import nearest_dot_index
-from InputData.resource.digit_value import Limits
+from res.strings import Limits
 
 
 class RoofPoint(JsonInOut):
@@ -49,8 +49,9 @@ class RoofProfile(JsonInOut):
         return [p.x for p in self.points], [p.y for p in self.points]
 
     def get_x_y_offset(self, base: float) -> [[float]]:
+        scale = Limits.BASE_PLOT_SCALE
         points = np.array([[0, 0], [0, base], [base, 0], [base, base]] +
-                          [[p.x / Limits.BASEPLOTSCALE * base, p.y / Limits.BASEPLOTSCALE * base] for p in self.points])
+                          [[p.x / scale * base, p.y / scale * base] for p in self.points])
         ll, lr, ul, ur = self.values_corner_points.values()
         val = np.array([ll, lr, ul, ur] + [p.z for p in self.points])
         grid_x, grid_y = np.mgrid[0:base:1, 0:base:1]

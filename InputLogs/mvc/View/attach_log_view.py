@@ -9,7 +9,7 @@ from PyQt5.QtWidgets import QMainWindow, QLabel, QCheckBox, QPushButton, QWidget
 from InputLogs.mvc.Model.map import Map
 from InputLogs.mvc.Model.map_property import cut_along
 from InputLogs.mvc.View.list_scroll_widget import ListScrollWidgets
-from InputLogs.resourse.strings import main_icon
+from res.strings import main_icon
 from utils.create_layout import create_frame, clear_layout
 
 
@@ -31,7 +31,8 @@ class AttachLogView(QMainWindow):
         self.addButton.clicked.connect(self.start_attach_logs)
 
     def start_attach_logs(self):
-        for lay_name, log_name in [(lay, log) for lay in self.attach_layers for log in self.attach_logs]:
+        for lay_name, log_name in [(lay, log) for lay in self.attach_layers
+                                   for log in self.attach_logs]:
             self.data_map.attach_log_to_layer(log_name, lay_name)
 
         self.attach_layers = set([])
@@ -42,17 +43,22 @@ class AttachLogView(QMainWindow):
         clear_layout(self.infoFrame.layout())
         list_scroll = ListScrollWidgets(self.infoFrame)
 
-        names = list({lay_name for lay_name, log_name in sorted(self.data_map.attach_list(), key=lambda i: i[0])})
+        names = list({lay_name for lay_name, log_name in
+                      sorted(self.data_map.attach_list(), key=lambda i: i[0])})
 
-        sub_names = [lay_name[lay_name.index('|') + 1:] for lay_name, log_name in self.data_map.attach_list()]
+        sub_names = [lay_name[lay_name.index('|') + 1:]
+                     for lay_name, log_name in self.data_map.attach_list()]
         sub_names = {cut_along(lay_name, '|') for lay_name in sub_names}.union({'!!!'})
         sub_names.discard('')
 
-        get_main_name: callable = lambda name: sorted([name.replace(sub_name, '') for sub_name in sub_names],
+        get_main_name: callable = lambda name: sorted([name.replace(v, '') for v in sub_names],
                                                       key=lambda i: len(i))[0].replace('||', '|')
 
-        name_groups = {get_main_name(name): {name.replace(a, b) for a in sub_names for b in sub_names
-                                             if name.replace(a, b) in names} for name in names}
+        name_groups = {get_main_name(name): {name.replace(a, b)
+                                             for a in sub_names
+                                             for b in sub_names
+                                             if name.replace(a, b) in names}
+                       for name in names}
 
         for main_lay_name in sorted(name_groups.keys()):
             widgets, skip_list = [], set()
@@ -69,8 +75,8 @@ class AttachLogView(QMainWindow):
                 skip_list.add(get_main_name(lay_name) + log_name)
                 log = self.data_map.get_logs_by_name(log_name)
 
-                detach_list = [(sub_lay_name, log_name) for sub_lay_name in name_groups[get_main_name(lay_name)]]
-                print(detach_list)
+                detach_list = [(sub_lay_name, log_name)
+                               for sub_lay_name in name_groups[get_main_name(lay_name)]]
 
                 del_btn = QPushButton('❌')
                 del_btn.setMaximumWidth(30)

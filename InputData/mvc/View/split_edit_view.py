@@ -1,25 +1,26 @@
 import os
+from functools import partial
 
 from PyQt5 import uic
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QMainWindow
 
 from InputData.mvc.Controller.qt_matplotlib_connector import EditorSplitController
-from InputData.mvc.Model.map import Map
-from InputData.resource.strings import main_icon, TitleName
+from InputData.mvc.Model.lithological_model import LithologicalModel
+from res.strings import main_icon, TitleName
 
 
 class SplitEditWindow(QMainWindow):
-    def __init__(self, map: Map):
+    def __init__(self, lithological_model: LithologicalModel):
         super(SplitEditWindow, self).__init__()
         uic.loadUi(os.environ['project'] + '/ui/split_edit.ui', self)
 
         self.setWindowTitle(TitleName.SplitEditWindow)
         self.setWindowIcon(QIcon(main_icon()))
 
-        self.splits = map.splits
-        self.surface_editor = EditorSplitController(map, parent=self.draw_polygon_frame)
-
+        self.splits = lithological_model.splits
+        self.surface_editor = EditorSplitController(lithological_model,
+                                                    parent=self.draw_polygon_frame)
 
         self.update_info()
         self.button_connect()
@@ -29,15 +30,13 @@ class SplitEditWindow(QMainWindow):
         return int(self.splitNumberComboBox.currentText()) - 1
 
     def button_connect(self):
+        split: () = lambda k, v: self.splits[self.current_split_number()].__setattr__(k, v)
+
         self.splitNumberComboBox.activated.connect(self.change_current_split)
-        self.angleSpinBox.valueChanged.connect(
-            lambda: self.splits[self.current_split_number()].__setattr__('angle', self.angleSpinBox.value()))
-        self.depthSpinBox.valueChanged.connect(
-            lambda: self.splits[self.current_split_number()].__setattr__('depth', self.depthSpinBox.value()))
-        self.depthStartRadioButton.clicked.connect(
-            lambda: self.splits[self.current_split_number()].__setattr__('from_start', True))
-        self.depthEndRadioButton.clicked.connect(
-            lambda: self.splits[self.current_split_number()].__setattr__('from_start', False))
+        self.angleSpinBox.valueChanged.connect(lambda: split('angle', self.angleSpinBox.value()))
+        self.depthSpinBox.valueChanged.connect(lambda: split('depth', self.depthSpinBox.value()))
+        self.depthStartRadioButton.clicked.connect(partial(split, 'from_start', True))
+        self.depthEndRadioButton.clicked.connect(partial(split, 'from_start', False))
         self.saveButton.clicked.connect(self.save)
 
     def update_info(self):

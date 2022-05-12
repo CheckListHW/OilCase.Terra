@@ -12,9 +12,6 @@ class SettingsView(QWidget):
         self.input_value_width = 150
         self.setLayout(QVBoxLayout(self))
 
-        # self.file_name_line_edit = QLineEdit()
-        # self.add_row_property('File name', self.file_name_line_edit)
-
         self.initial_depth_spin_box = QDoubleSpinBox()
         self.initial_depth_spin_box.setMaximum(5000)
         self.initial_depth_spin_box.setValue(self.data_map.initial_depth)

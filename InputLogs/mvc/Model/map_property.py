@@ -77,14 +77,14 @@ class ColumnIntervals:
 
 
 class MapProperty:
-    __slots__ = 'columns', 'body_names', 'attach_logs', '_visible_names', 'core_samples', 'settings', \
+    __slots__ = 'columns', 'body_names', 'attach_logs', '_visible_names', 'core_samples', \
                 'interval_data', 'max_x', 'max_y', 'max_z', 'path_map', 'owc', 'export_data', \
                 'all_logs', 'export', 'percent_safe_core', 'initial_depth', 'step_depth', \
-                'select_log', 'path_map'
+                'settings', '__select_log', 'path_map',
 
     def __init__(self, path_map: Optional[str] = None, path_log: Optional[str] = None):
         self.columns, self.interval_data = {}, {}
-        self.export_data, self.select_log = None, None
+        self.export_data, self.__select_log = None, None
         self._visible_names, self.body_names, self.all_logs = [], [], []
         self.max_x, self.max_y, self.max_z = 0, 0, 0
         self.attach_logs, self.owc = {}, {}  # {name(str): [Log]}, {name(str): float}
@@ -149,17 +149,17 @@ class MapProperty:
         self._visible_names = self.body_names.copy()
 
     def save(self):
-        self.interval_data = dict()
-        self.interval_data['all_logs'] = [log.get_as_dict() for log in self.all_logs]
-        self.interval_data['attach_logs'] = {k: [log.name for log in logs] for k, logs in
-                                             self.attach_logs.items()}
-        self.interval_data['owc'] = self.owc
-        self.interval_data['core_samples'] = self.core_samples
-        self.interval_data['settings'] = {'percent_safe_core': self.percent_safe_core,
-                                          'step_depth': self.step_depth,
-                                          'initial_depth': self.initial_depth,
-                                          }
-        return self.interval_data
+        map_dict = dict()
+        map_dict['all_logs'] = [log.get_as_dict() for log in self.all_logs]
+        map_dict['attach_logs'] = {k: [log.name for log in logs] for k, logs in
+                                   self.attach_logs.items()}
+        map_dict['owc'] = self.owc
+        map_dict['core_samples'] = self.core_samples
+        map_dict['settings'] = {'percent_safe_core': self.percent_safe_core,
+                                'step_depth': self.step_depth,
+                                'initial_depth': self.initial_depth,
+                                }
+        return map_dict
 
     def visible_owc_names(self):
         return [a for b in
@@ -167,7 +167,7 @@ class MapProperty:
                 b]
 
     def get_logs_by_name(self, name: str) -> Optional[Log]:
-        logs = [l for l in self.all_logs if l.name == name]
+        logs = [v for v in self.all_logs if v.name == name]
         return None if len(logs) == 0 else logs[0]
 
     def add_core_sample(self, core_sample: CoreSample):
@@ -203,18 +203,18 @@ class MapProperty:
             set(self.get_logs(lay_name)) - set(self.sub_logs(log_name)))
 
     def logs_without_sub(self) -> [Log]:
-        return [l for l in self.all_logs if not l.name.__contains__('.')]
+        return [v for v in self.all_logs if not v.name.__contains__('.')]
 
     def main_logs_name(self) -> [str]:
-        return list({cut_along(l, '|') for l in self.main_logs_name_owc()})
+        return list({cut_along(v, '|') for v in self.main_logs_name_owc()})
 
     def main_logs_name_non_expression(self) -> [str]:
-        names = [l.name for l in [i for i in self.all_logs if i.text_expression == ''] if
-                 not l.name.__contains__('.')]
-        return list({cut_along(l, '|') for l in names})
+        names = [v.name for v in [i for i in self.all_logs if i.text_expression == ''] if
+                 not v.name.__contains__('.')]
+        return list({cut_along(v, '|') for v in names})
 
     def main_logs_name_owc(self) -> [str]:
-        return list({cut_along(l.name, '.') for l in self.all_logs})
+        return list({cut_along(v.name, '.') for v in self.all_logs})
 
     def main_body_names_owc(self) -> [str]:
         m_names = set(self.main_body_names())
@@ -225,7 +225,7 @@ class MapProperty:
         return sorted(list(m_names))
 
     def main_body_names(self):
-        return list(set([cut_along(l, '|') + '|' for l in self.body_names]))
+        return list(set([cut_along(v, '|') + '|' for v in self.body_names]))
 
     def set_owc(self, name: str, value: int):
         if value in [0, '0', None]:
@@ -260,7 +260,7 @@ class MapProperty:
         return [] if self.attach_logs.get(name) is None else self.attach_logs.get(name)
 
     def get_one_log(self, name: str) -> Optional[Log]:
-        x = [l.name for l in self.get_logs(name) if l.main]
+        x = [v.name for v in self.get_logs(name) if v.main]
         if x:
             if self.sub_logs(x[0]):
                 return random.choice(self.sub_logs(x[0])) if x else None
@@ -272,10 +272,11 @@ class MapProperty:
         sub_name_order_update(logs)
 
     def get_column(self, x: Union[int, str], y: Union[int, str]) -> [{str: [dict]}]:
-        return [a for b in [self.get_colum_body(x, y, name) for name in self.body_names] for a in b]
+        columns = [self.get_column_body(x, y, name) for name in self.body_names]
+        return [a for b in columns for a in b]
 
-    def get_colum_body(self, x: Union[int, str], y: Union[int, str], body_name: str) -> {
-        str: [dict]}:
+    def get_column_body(self, x: Union[int, str], y: Union[int, str], body_name: str) -> \
+            {str: [dict]}:
         try:
             if self.owc.get(body_name) is not None:
                 interval_column = self.interval_data[body_name][str(x)][str(y)]
@@ -297,11 +298,21 @@ class MapProperty:
                             interval_column_w.append(
                                 {'name': body_name_w, 's': s_e['s'], 'e': s_e['e']})
                     return interval_column_o + interval_column_w
+
             return [{'name': last_char_is(body_name, '|'), 's': col['s'], 'e': col['e']} for col in
                     self.interval_data[body_name][str(x)][str(y)]]
-
         except KeyError or IndexError:
             return []
+
+    @property
+    def select_log(self):
+        if self.__select_log is None:
+            return self.main_logs_name()[0] if self.main_logs_name() else None
+        return self.__select_log
+
+    @select_log.setter
+    def select_log(self, value):
+        self.__select_log = value
 
     def get_column_curve(self, x: int, y: int) -> Optional[ColumnIntervals]:
         if self.export_data is not None:
@@ -309,12 +320,16 @@ class MapProperty:
             curves = [i for i in self.export_data.values() if
                       i.get('i') == x + 1 and i.get('j') == y + 1]
 
+            if self.select_log is None:
+                self.select_log = self.main_logs_name()[0] if self.main_logs_name() else None
             name_log = self.select_log
-            curve = [i.get(name_log) for i in curves]
-            indexes = [i.get('index') for i in curves]
 
-            column = ColumnIntervals()
-            column.append([curve, name_log, indexes])
+            if name_log:
+                curve = [i.get(name_log) for i in curves]
+                indexes = [i.get('index') for i in curves]
+
+                column = ColumnIntervals()
+                column.append([curve, name_log, indexes])
 
             return column
 
@@ -331,11 +346,11 @@ class MapProperty:
             if not log:
                 continue
 
-            interval = range(int(s), int(e) + 1)
-            if len(interval) >= 1:
-                curve = log.get_x(len(interval))
+            range_interval = range(int(s), int(e) + 1)
+            if len(range_interval) >= 1:
+                curve = log.get_x(len(range_interval))
 
-                col_intervals.append((curve, name, interval))
+                col_intervals.append((curve, name, range_interval))
                 col_intervals.set_min(log.min)
                 col_intervals.set_max(log.max)
 

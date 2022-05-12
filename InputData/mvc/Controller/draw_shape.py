@@ -4,8 +4,8 @@ import numpy as np
 from matplotlib import pyplot as plt
 
 from InputData.mvc.Controller.qt_matplotlib_connector import EditorController
-from InputData.mvc.Model.map import Map
-from InputData.mvc.Model.shape import Shape
+from InputData.mvc.Model.lithological_model import LithologicalModel
+from InputData.mvc.Model.lithology import Lithology
 from utils.geometry.point_in_polygon import check_polygon_in_polygon
 from utils.geometry.prepare_layers_for_plot_3d import data_for_plot_3d
 from utils.geometry.simplify_line import simplify_line
@@ -30,10 +30,10 @@ class Plot3d:
             self.connector.draw()
 
 
-class DrawVoxels:
-    def __init__(self, map_val: Map, plot3d=None):
+class DrawPolygon:
+    def __init__(self, data_map: LithologicalModel, plot3d=None):
         self.repeat = {}
-        self.map = map_val
+        self.map = data_map
         self.all_polygon = np.zeros([1, 1, 1], dtype=bool)
         self.plot3d = plot3d if plot3d else Plot3d()
 
@@ -48,30 +48,36 @@ class DrawVoxels:
             self.draw_all_polygon()
         else:
             self.draw_plot()
+
         self.map.update_size()
         self.update_limits()
         self.plot3d.draw()
 
     def draw_plot(self):
         self.plot3d.ax.clear()
-        shapes: [Shape] = self.map.get_visible_shapes()
+        shapes: [Lithology] = self.map.get_visible_shapes()
 
         self.map.data = {}
         for shape in shapes:
             # roof_profile_offset
-            r_p_o = self.map.roof_profile.get_x_y_offset(base=max(self.map.size.x, self.map.size.y))
+            base_size = max(self.map.size.x, self.map.size.y)
+
+            r_p_o = self.map.roof_profile.get_x_y_offset(base=base_size)
             r_p_o = [[0 if shape.filler else j for j in i] for i in r_p_o]
 
             # include_not_primary
-            i_n_t, _ = (True, shape.calc_intermediate_layers()) \
-                if self.map.draw_speed == 'Simple' else (False, shape.delete_secondary_surface())
+            if self.map.draw_speed == 'Simple':
+                i_n_t, _ = (True, shape.calc_intermediate_layers())
+            else:
+                i_n_t, _ = (False, shape.delete_secondary_surface())
 
             main_layers = [lay for lay in shape.layers if (lay.primary or i_n_t) and lay.x != []]
 
             layers, layers_x, layers_y = [], [], []
-            value = max([len(lay.scalable_curve[0]) for lay in main_layers] + [0])
+            base_dot_count = max([len(lay.scalable_curve[0]) for lay in main_layers] + [0])
+
             for lay in main_layers:
-                a, b = simplify_line(lay.scalable_curve[0], lay.scalable_curve[1], value)
+                a, b = simplify_line(lay.scalable_curve[0], lay.scalable_curve[1], base_dot_count)
                 layers_x.append(a)
                 layers_y.append(b)
                 layers.append((lay.z, a, b))
@@ -91,14 +97,16 @@ class DrawVoxels:
 
     def draw_all_polygon(self):
         self.plot3d.ax.clear()
-        self.repeat, self.map.data, main_data, self.all_polygon = {}, {}, [], np.zeros([1, 1, 1],
-                                                                                       dtype=bool)
+        self.repeat, self.map.data, main_data = {}, {}, []
+        self.all_polygon = np.zeros([1, 1, 1], dtype=bool)
+
         for shape in self.map.get_visible_shapes():
             shape.calc_intermediate_layers()
+
             data = self.calc_polygon_in_draw(shape)
-            self.map.data[f'{shape.name}|{shape.sub_name}'] = dict_update(
-                self.map.data.get(shape.name),
-                transform_data(data))
+            self.map.data[f'{shape.name}|{shape.sub_name}'] = \
+                dict_update(self.map.data.get(shape.name), transform_data(data))
+
             colors = np.empty(list(data.shape) + [4], dtype=np.float32)
             r, g, b = shape.color
             colors[:] = [r / 255, g / 255, b / 255, shape.alpha]
@@ -110,7 +118,7 @@ class DrawVoxels:
             self.plot3d.ax.voxels(data, facecolors=colors)
 
     # set visible polygon
-    def calc_polygon_in_draw(self, fig: Shape) -> []:
+    def calc_polygon_in_draw(self, fig: Lithology) -> []:
         roof = self.map.roof_profile.get_x_y_offset(base=max(self.map.size.x, self.map.size.y))
         roof = [[0 if fig.filler else j for j in i] for i in roof]
         z_size = int(fig.height + max(a for b in roof for a in b) + 1)

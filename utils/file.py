@@ -33,7 +33,7 @@ def save_dict_as_json(data: dict, path: str = os.getcwd(),
     elif filename.__contains__('.json'):
         path_save = filename
     elif filename.__contains__('.'):
-        path_save = path+'/'+filename.split('/')[-1]
+        path_save = path + '/' + filename.split('/')[-1]
     else:
         path_save = path + f'/{filename}.json'
     path_save.replace("\\", '/')
@@ -112,25 +112,21 @@ class FileEdit:
         save_dict_as_json(data=data, filename=self.project_path)
 
     def open_file(self, file_extension='json'):
-        self.project_path, _ = QFileDialog.getOpenFileName(None, '', getcwd(),
-                                                        f'{file_extension} Files (*.{file_extension})')
+        message = f'{file_extension} Files (*.{file_extension})'
+        self.project_path, _ = QFileDialog.getOpenFileName(None, '', getcwd(), message)
         return self.project_path
 
-    def create_file(self, message=None, extension: str = '.json') -> Optional[str]:
+    def create_file(self, message=None, extension: str = '', filename: str = '') -> Optional[str]:
         if not message:
             message = self.create_file_default
-        filename, ok = QInputDialog.getText(None, 'Input Dialog', str(message))
+        filename, ok = QInputDialog.getText(None, 'Input Dialog', str(message)) \
+                           if not filename else filename, True
+
         if ok and filename and filename != '':
             path = QFileDialog.getExistingDirectory(None, getcwd())
-            if extension != '.json':
-                extension = extension.replace('.', '')
-                if filename.__contains__('.'):
-                    return f'{path}/{filename}'
-                else:
-                    return f'{path}/{filename}{"." + extension}'
-            else:
-                self.project_path = save_dict_as_json({}, path, filename)
-                return self.project_path
+
+            return f'{path}/{filename}' if filename.__contains__('.') or extension is None else \
+                f'{path}/{filename}{"." + extension.replace(".", "")}'
 
         return None
 

@@ -44,7 +44,7 @@ class LineSegment(JsonInOut):
 class PolygonalChain:
     __slots__ = 'dots'
 
-    def __init__(self, x: [float] = [], y: [float] = []):
+    def __init__(self, x: [float], y: [float]):
         self.dots: List[Point] = []
 
         for x1, y1 in zip(x, y):

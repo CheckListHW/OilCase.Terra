@@ -12,7 +12,7 @@ from InputData.mvc.Model.surface import Surface
 from utils.geometry.nearest_dot import nearest_dot_index, nearest_line_index, dot_to_border
 # x - width, y - length
 from utils.geometry.simplify_line import simplify_line, polyline
-from InputData.resource.digit_value import Limits
+from res.strings import Limits
 
 
 def draw_polygon(x, y, ax, size=1):
@@ -33,14 +33,14 @@ class EditSurface:
         self.plot_prepare()
 
     def plot_prepare(self):
-        self.ax.set_xlim(0, Limits.BASEPLOTSCALE)
-        self.ax.set_ylim(0, Limits.BASEPLOTSCALE)
+        self.ax.set_xlim(0, Limits.BASE_PLOT_SCALE)
+        self.ax.set_ylim(0, Limits.BASE_PLOT_SCALE)
 
         if self.grid_off:
             return
 
-        self.ax.xaxis.set_major_locator(MultipleLocator(Limits.BASEPLOTSCALE / 5))
-        self.ax.yaxis.set_major_locator(MultipleLocator(Limits.BASEPLOTSCALE / 5))
+        self.ax.xaxis.set_major_locator(MultipleLocator(Limits.BASE_PLOT_SCALE / 5))
+        self.ax.yaxis.set_major_locator(MultipleLocator(Limits.BASE_PLOT_SCALE / 5))
 
         self.ax.xaxis.set_minor_locator(AutoMinorLocator(5))
         self.ax.yaxis.set_minor_locator(AutoMinorLocator(5))
@@ -76,13 +76,13 @@ class EditSurface:
             self.ax.fill(x, y, color='red', alpha=0.5)
 
         for split, color in zip(self.surface.splits, ['red', 'blue']):
-            a, b = (split.a.x, split.a.y), (split.b.x, split.b.y)
-
             def size_round(value: float, step: float) -> float:
-                return round(value * (Limits.BASEPLOTSCALE / step)) * step
+                return round(value * (Limits.BASE_PLOT_SCALE / step)) * step
 
-            step_x = Limits.BASEPLOTSCALE / self.surface.size.x
-            step_y = Limits.BASEPLOTSCALE / self.surface.size.y
+            a, b = (split.a.x, split.a.y), (split.b.x, split.b.y)
+            step_x = Limits.BASE_PLOT_SCALE / self.surface.size.x
+            step_y = Limits.BASE_PLOT_SCALE / self.surface.size.y
+
             if a[0] is not None:
                 a = (size_round(a[0], step_x), size_round(a[1], step_y))
                 self.ax.scatter(a[0], a[1], color='red')
@@ -90,8 +90,8 @@ class EditSurface:
                 b = (size_round(b[0], step_x), size_round(b[1], step_y))
                 self.ax.scatter(b[0], b[1], color='blue')
             if a[0] is not None and b[0] is not None:
-                scale_x = self.surface.size.x / Limits.BASEPLOTSCALE
-                scale_y = self.surface.size.y / Limits.BASEPLOTSCALE
+                scale_x = self.surface.size.x / Limits.BASE_PLOT_SCALE
+                scale_y = self.surface.size.y / Limits.BASE_PLOT_SCALE
                 x, y = polyline(a, b, scale_x=scale_x, scale_y=scale_y)
                 self.draw_line(x, y, color=color)
 
@@ -109,9 +109,10 @@ class EditSurface:
         self.update_plot()
 
     def choose_dot(self, x: float, y: float) -> Optional[int]:
-        self.update_plot()
         dots_x, dots_y = self.surface.curve
         self.nearest_dot_index = nearest_dot_index(dots_x, dots_y, x, y)
+
+        self.update_plot()
         if self.nearest_dot_index is None:
             return None
         else:
@@ -156,9 +157,9 @@ class EditSurface:
                 print('error choose line', len(dots_x), len(dots_y), a, b)
 
     def add_split_dot(self, x1: float, y1: float, start_line: bool = True):
-        x1, y1 = dot_to_border(x1, y1, Limits.BASEPLOTSCALE)
-        self.surface.change_dot_split(x1 / Limits.BASEPLOTSCALE,
-                                      y1 / Limits.BASEPLOTSCALE, start_line)
+        x1, y1 = dot_to_border(x1, y1, Limits.BASE_PLOT_SCALE)
+        self.surface.change_dot_split(x1 / Limits.BASE_PLOT_SCALE,
+                                      y1 / Limits.BASE_PLOT_SCALE, start_line)
         self.update_plot()
 
     def add_dot(self, x, y):
@@ -175,7 +176,7 @@ class EditSurface:
             self.draw_line(dots_x + [dots_x[0]], dots_y + [dots_y[0]])
 
 
-def get_points_val(roof_profile: RoofProfile, base=Limits.BASEPLOTSCALE):
+def get_points_val(roof_profile: RoofProfile, base=Limits.BASE_PLOT_SCALE):
     points = np.array([[0, 0], [0, base], [base, 0], [base, base]] +
                       [[p.x, p.y] for p in roof_profile.points])
 
@@ -220,7 +221,7 @@ class EditRoofProfileSurface(EditSurface):
         self.plot_prepare()
 
         if len(self.roof_profile.points) > 0:
-            base = Limits.BASEPLOTSCALE
+            base = Limits.BASE_PLOT_SCALE
             points, val = get_points_val(self.roof_profile)
             grid_x, grid_y = np.mgrid[0:base:25j, 0:base:25j]
             grid_z = griddata(points, val, (grid_x, grid_y),
@@ -233,7 +234,7 @@ class EditRoofProfileSurface(EditSurface):
 
     def show3d(self):
         if len(self.roof_profile.points) > 0:
-            base = Limits.BASEPLOTSCALE
+            base = Limits.BASE_PLOT_SCALE
             points, val = get_points_val(self.roof_profile)
             grid_x, grid_y = np.mgrid[0:base:25j, 0:base:25j]
             grid_z = griddata(points, val, (grid_x, grid_y),

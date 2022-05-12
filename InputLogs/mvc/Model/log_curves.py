@@ -10,11 +10,16 @@ from scipy.interpolate import interp1d
 from utils.ceil import ceil
 from utils.gisaug.augmentations import DropRandomPoints, Stretch
 from utils.json_in_out import JsonInOut
-from utils.time_work import MyTimer
+
+
+def stretch_curve(len_x: int, x: [float]) -> [float]:
+    curve = DropRandomPoints(0.95)(np.array(x))
+    return Stretch.stretch_curve_by_count(curve, len_x)
 
 
 class Log(JsonInOut):
-    __slots__ = '_min', '_max', 'name', 'main', '_x', '_trend', 'f_trend', 'dispersion', 'text_expression', 'data_map'
+    __slots__ = '_min', '_max', 'name', 'main', '_x', '_trend', 'f_trend', \
+                'dispersion', 'text_expression', 'data_map'
 
     def __init__(self, data_map, data_dict: dict = None, **kwargs):
         self.data_map = data_map
@@ -37,8 +42,7 @@ class Log(JsonInOut):
     @property
     def trend(self):
         f_trend = self.f_trend_init()
-        trend = [(ceil(f_trend(i)), i) for i in np.arange(0, 1, 0.001)]
-        return trend
+        return [(ceil(f_trend(i)), i) for i in np.arange(0, 1, 0.001)]
 
     @property
     def trend_point(self) -> ([float], [float]):
@@ -68,7 +72,7 @@ class Log(JsonInOut):
         self._trend.pop(min(nearest, key=lambda i: i[1])[0])
 
     def get_text(self) -> str:
-        min_max = (f"min = {self.min}, max = {self.max}" if self.max or self.min else self.text_expression)
+        min_max = (f"min = {self.min}, max = {self.max}" if self.max else self.text_expression)
         return f'{self.name} \n{min_max} ' \
                f'{".xlsx" if self._x and self.text_expression == "" else ""} ' \
                f'{"⚡" if len(self._trend) > 2 else ""}'
@@ -103,18 +107,14 @@ class Log(JsonInOut):
     def x(self, value: [float]):
         self._x = value
 
-    def stretch_curve(self, len_x: int, x: [float]) -> [float]:
-        curve = DropRandomPoints(0.95)(np.array(x))
-        return Stretch.stretch_curve_by_count(curve, len_x)
-
     def get_x(self, len_x: int):
         if self.text_expression and self.data_map:
             e_log = ExpressionLog(self.data_map, self.text_expression)
             if e_log():
-                return self.stretch_curve(len_x, e_log.x)
+                return stretch_curve(len_x, e_log.x)
 
         if self._x:
-            return self.stretch_curve(len_x, self._x)
+            return stretch_curve(len_x, self._x)
 
         if self.max is not None and self.min is not None:
             x = self.trend_x(len_x)
@@ -136,16 +136,14 @@ def trend(min_x: int, max_x: int, dispersion: float, len_x: int, f_trend: ()) ->
     a, b, avg, des = min_x, max_x, abs(max_x - min_x) / 2, dispersion
 
     f_rand: () = lambda v: np.random.uniform(a + (v - a) * des, b - (b - v) * des)
-    f_offset: () = lambda i, y1: y1 + avg * ceil(f_trend(i))
-    f_y_limit: () = lambda y: y if a <= y <= b else f_y_limit(a + a - y) if a > y else f_y_limit(b + b - y)
+    f_offset: () = lambda i, v: v + avg * ceil(f_trend(i))
+    lim: () = lambda v: v if a <= v <= b else lim(a + a - v) if a > v else lim(b + b - v)
 
     y, len_y = [(min_x + max_x) / 2], len_x
     for _ in range(len_y - 1):
         y.append(f_rand(y[-1]))
 
-    v = [f_y_limit(f_offset(i / len_y, y1)) for i, y1 in zip(range(len_y), y)]
-
-    return v
+    return [lim(f_offset(i / len_y, y1)) for i, y1 in zip(range(len_y), y)]
 
 
 def expression_array_parser(expression: str, logs_name: [str]) -> Optional[Callable]:
@@ -175,10 +173,11 @@ class ExpressionLog:
     __slots__ = 'x', 'logs', 'text_expression'
 
     def __init__(self, data_map, text_expression: str):
+        self.x = []
         self.text_expression = text_expression
         log_names = get_variable_expression(self.text_expression)
 
-        sub_logs: () = lambda name: [l for l in data_map.all_logs if l.name.split('.')[0] == name]
+        sub_logs: () = lambda name: [v for v in data_map.all_logs if v.name.split('.')[0] == name]
         self.logs = {name: random.choice(sub_logs(name)).x for name in log_names}
 
         self.update()
@@ -195,26 +194,26 @@ class ExpressionLog:
         len_x = len(self.x)
         try:
             self.x = [expression(self.logs, i, len_x) for i in range(len(self.x))]
-        except:
+        finally:
             pass
 
 
 def sort_expression_logs(logs: [Log]) -> [(str, str)]:
-    expressions = [(log.name, log.text_expression, log) for log in logs]
+    exps = [(log.name, log.text_expression, log) for log in logs]
 
-    cut_excess: () = lambda i: i[:i.index('|')].replace(' ', '').replace('{', '').replace('}', '')
-    extract_vars: () = lambda i: re.findall(r'[{].*?[}]', i)
+    cut: () = lambda i: i[:i.index('|')].replace(' ', '').replace('{', '').replace('}', '')
+    extract: () = lambda i: re.findall(r'[{].*?[}]', i)
 
-    unsorted_expressions = [(cut_excess(exp[0]), [cut_excess(i) for i in extract_vars(exp[1])], exp[2]) for exp in
-                            expressions]
+    unsorted_exps = [(cut(exp[0]), [cut(i) for i in extract(exp[1])], exp[2]) for exp in exps]
     old, sorted_expressions = [], []
 
-    while unsorted_expressions:
+    while unsorted_exps:
         old = sorted_expressions.copy()
-        for i in unsorted_expressions:
-            if not [uns_exp for uns_exp in i[1] if uns_exp in [uns_exp[0] for uns_exp in unsorted_expressions]]:
+        for i in unsorted_exps:
+            if not [uns_exp for uns_exp in i[1]
+                    if uns_exp in [uns_exp[0] for uns_exp in unsorted_exps]]:
                 sorted_expressions.append(i)
-        unsorted_expressions = [i for i in unsorted_expressions if i not in sorted_expressions]
+        unsorted_exps = [i for i in unsorted_exps if i not in sorted_expressions]
         if old == sorted_expressions:
-            return expressions
+            return exps
     return [log for _, _, log in sorted_expressions]

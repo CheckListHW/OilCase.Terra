@@ -1,3 +1,5 @@
+from typing import Optional
+
 from PyQt5 import QtWidgets
 from PyQt5.QtGui import QKeySequence
 from PyQt5.QtWidgets import QFrame, QShortcut
@@ -6,8 +8,8 @@ from matplotlib.figure import Figure
 
 from InputData.mvc.Controller.edit_plot_modes import *
 from InputData.mvc.Controller.draw_surface import EditSurface, EditRoofProfileSurface
-from InputData.mvc.Model.map import Map
-from InputData.mvc.Model.shape import Shape
+from InputData.mvc.Model.lithological_model import LithologicalModel
+from InputData.mvc.Model.lithology import Lithology
 from InputData.mvc.Model.size import Size
 from InputData.mvc.Model.surface import Surface
 from utils.file import save_dict_as_json
@@ -16,6 +18,10 @@ from utils.file import save_dict_as_json
 class EditorController(FigureCanvasQTAgg):
     def __init__(self, mode: ModeStatus, surf: Surface):
         # при добавлении 'super().__init__()' крашится
+        self.mode: ModeStatus = ModeStatus.Empty
+        self.handler_move_id = None
+        self.lithological_model: Optional[LithologicalModel] = None
+        self.lithology: Optional[Lithology] = None
 
         self.ax = self.figure.add_subplot()
         self.plot = EditSurface(fig=self.figure, ax=self.ax, surf=surf)
@@ -85,34 +91,34 @@ class EditorController(FigureCanvasQTAgg):
 
 
 class EditorSplitController(EditorController):
-    def __init__(self, map: Map, parent=None, **kwargs):
+    def __init__(self, lithological_model: LithologicalModel, parent=None, **kwargs):
         self.kwargs = kwargs
         fig = Figure(tight_layout=True)
-        self.map = map
+        self.lithological_model = lithological_model
 
         FigureCanvasQTAgg.__init__(self, fig)
         self.mainLayout = QtWidgets.QGridLayout(parent)
         self.mainLayout.addWidget(self)
 
-        surf = Surface(size=self.map.size)
-        surf.splits = [split_line.line for split_line in map.splits]
+        surf = Surface(size=self.lithological_model.size)
+        surf.splits = [split_line.line for split_line in lithological_model.splits]
         super(EditorSplitController, self).__init__(surf=surf, mode=ModeStatus.AddSplit)
 
 
 class EditorRoofProfileController(EditorController):
-    def __init__(self, map: Map, parent=None, **kwargs):
+    def __init__(self, lithological_model: LithologicalModel, parent=None, **kwargs):
         self.kwargs = kwargs
         fig = Figure(tight_layout=True)
-        self.map = map
+        self.lithological_model = lithological_model
 
         FigureCanvasQTAgg.__init__(self, fig)
         self.mainLayout = QtWidgets.QGridLayout(parent)
         self.mainLayout.addWidget(self)
 
-        surf = Surface(size=self.map.size)
+        surf = Surface(size=lithological_model.size)
         super(EditorRoofProfileController, self).__init__(surf=surf, mode=ModeStatus.AddDot)
         self.plot = EditRoofProfileSurface(fig=self.figure, ax=self.ax,
-                                           roof_profile=self.map.roof_profile)
+                                           roof_profile=lithological_model.roof_profile)
         self.set_mode(ModeStatus.AddDot)
 
 
@@ -141,10 +147,10 @@ class EditorFigureController(FigureCanvasQTAgg):
 
 
 class EditorSurfaceController(EditorController):
-    def __init__(self, parent, shape: Shape, **kwargs):
+    def __init__(self, parent, shape: Lithology, **kwargs):
         self.kwargs = kwargs
         fig = Figure(tight_layout=True)
-        self.shape: Shape
+        self.lithology: Lithology
 
         FigureCanvasQTAgg.__init__(self, fig)
         self.mainLayout = QtWidgets.QGridLayout(parent)
@@ -153,52 +159,53 @@ class EditorSurfaceController(EditorController):
 
         self.select_layer = 0
         super().__init__(surf=shape.layers[0], mode=ModeStatus.DrawCurve)
-        self.set_shape(shape=shape)
+        self.set_shape(lithology=shape)
 
-    def set_shape(self, path: str = None, shape: Shape = None):
+    def set_shape(self, path: str = None, lithology: Lithology = None):
         if path:
-            self.shape = Shape(size=Size(), path=path)
-        elif shape:
-            self.shape = shape
+            self.lithology = Lithology(size=Size(), path=path)
+        elif lithology:
+            self.lithology = lithology
         self.change_lay(0)
 
     def edit_lay(self, index: int, edit_method: str = 'add', **kwargs):
         lay = None
         if edit_method[:3] == 'add':
-            pre_lay = self.shape.layers[index]
-            lay = self.shape.insert_layer(index + 1 if edit_method == 'add_post' else index)
+            pre_lay = self.lithology.layers[index]
+            lay = self.lithology.insert_layer(index + 1 if edit_method == 'add_post' else index)
             if lay:
                 lay.x, lay.y = pre_lay.x.copy(), pre_lay.y.copy()
 
         elif edit_method == 'del':
-            self.shape.pop_layer(index)
-            lay = self.shape.layers[index] if index in range(0, len(self.shape.layers)) else None
+            self.lithology.pop_layer(index)
+            layers_range = range(0, len(self.lithology.layers))
+            lay = self.lithology.layers[index] if index in layers_range else None
 
         elif edit_method == 'move_up':
-            if self.shape.swap_layer(index, index - 1):
-                lay = self.shape.layers[index - 1]
+            if self.lithology.swap_layer(index, index - 1):
+                lay = self.lithology.layers[index - 1]
 
         elif edit_method == 'move_down':
-            if self.shape.swap_layer(index, index + 1):
-                lay = self.shape.layers[index + 1]
+            if self.lithology.swap_layer(index, index + 1):
+                lay = self.lithology.layers[index + 1]
 
         elif edit_method == 'change_height' and kwargs.get('height') is not None:
-            self.shape.set_layer_z(index, kwargs.get('height'))
+            self.lithology.set_layer_z(index, kwargs.get('height'))
 
         if lay is None:
-            lay = self.shape.layers[0]
+            lay = self.lithology.layers[0]
 
         self.change_lay(lay=lay)
 
     def change_lay(self, index: int = None, lay: Surface = None):
-        if index in range(0, len(self.shape.layers)):
-            super(EditorSurfaceController, self).change_lay(self.shape.layers[index])
+        if index in range(0, len(self.lithology.layers)):
+            super(EditorSurfaceController, self).change_lay(self.lithology.layers[index])
         elif lay:
             super(EditorSurfaceController, self).change_lay(lay)
 
     def save(self):
         if hasattr(self, 'shape'):
-            fig_dict = self.shape.get_as_dict()
+            fig_dict = self.lithology.get_as_dict()
             save_dict_as_json(fig_dict)
 
     def simplify_line(self):

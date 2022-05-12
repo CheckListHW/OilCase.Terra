@@ -8,7 +8,7 @@ from PyQt5.QtWidgets import QMainWindow, QFrame
 from InputData.mvc.Controller.qt_matplotlib_connector import EditorSurfaceControllerTight, EditorSurfaceController
 from InputData.mvc.Model.surface import Surface
 from InputData.mvc.View.single_surface_view import SingleLayWidget
-from InputData.resource.strings import main_icon, TitleName
+from res.strings import main_icon, TitleName
 
 
 class ViewingLayersWindow(QMainWindow):
@@ -42,15 +42,15 @@ class ViewingLayersWindow(QMainWindow):
         self.showSublayerCheckBox.stateChanged.connect(self.change_size)
 
     def calc_intermediate_layers(self):
-        self.surface_editor.shape.calc_intermediate_layers()
+        self.surface_editor.lithology.calc_intermediate_layers()
         self.show()
 
     def delete_secondary_surface(self):
-        self.surface_editor.shape.delete_secondary_surface()
+        self.surface_editor.lithology.delete_secondary_surface()
         self.show()
 
     def add_frame_to_layout(self, index: int) -> QFrame:
-        z = self.surface_editor.shape.layers[index].z
+        z = self.surface_editor.lithology.layers[index].z
         frame = SingleLayWidget(index, z, edit_lay_handler=self.edit_layer)
 
         self.layout_plots.addWidget(frame, index, 0)
@@ -80,7 +80,7 @@ class ViewingLayersWindow(QMainWindow):
 
         self.frames = list()
         show_sub = not bool(self.showSublayerCheckBox.checkState())
-        surfaces: List[Surface] = self.surface_editor.shape.sorted_layers()
+        surfaces: List[Surface] = self.surface_editor.lithology.sorted_layers()
         # surfaces = [s for s in surfaces if s.primary is True or s.primary is show_sub]
         for i in range(len(surfaces)):
             if surfaces[i].primary is True or surfaces[i].primary is show_sub:

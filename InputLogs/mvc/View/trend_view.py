@@ -7,7 +7,7 @@ from matplotlib.backend_bases import MouseButton
 
 from InputLogs.mvc.Controller.plot_controller import PlotTrendController
 from InputLogs.mvc.Model.log_curves import Log
-from InputLogs.resourse.strings import main_icon
+from res.strings import main_icon
 
 
 class TrendView(QMainWindow):
@@ -21,7 +21,6 @@ class TrendView(QMainWindow):
         self.controller = PlotTrendController(self.draw_polygon_frame)
         self.controller.on_click_observer.append(self.on_click)
         self.controller.draw_trend(self.log)
-        # self.dispersionSpinBox: QDoubleSpinBox = self.dispersionSpinBox
         self.dispersionSpinBox.editingFinished.connect(self.change_dispersion)
         self.dispersionSpinBox.setValue(self.log.dispersion)
 

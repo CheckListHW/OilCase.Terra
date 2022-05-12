@@ -4,11 +4,11 @@ from typing import Union
 
 from PyQt5 import uic
 from PyQt5.QtGui import QIcon
-from PyQt5.QtWidgets import QMainWindow, QLineEdit, QDoubleSpinBox, QComboBox, QLabel, QPushButton
+from PyQt5.QtWidgets import QMainWindow, QLabel, QPushButton
 
 from InputLogs.mvc.Model.map import Map
 from InputLogs.mvc.Model.map_property import CoreSample
-from InputLogs.resourse.strings import main_icon
+from res.strings import main_icon
 from utils.create_layout import create_frame
 
 

@@ -6,7 +6,6 @@ class ListScrollWidgets(QScrollArea):
         super(ListScrollWidgets, self).__init__(parent)
         if self.parent().layout() is None:
             self.parent().setLayout(QVBoxLayout(self))
-        # self.parent().layout().setContentsMargins(0, 0, 0, 0)
 
         self.parent().layout().addWidget(self)
         self.scroll_layout = QHBoxLayout(self)
@@ -14,7 +13,6 @@ class ListScrollWidgets(QScrollArea):
         self.scroll.setLayout(self.scroll_layout)
         self.scroll.layout().setContentsMargins(0, 0, 0, 0)
         self.scroll.layout().setSpacing(0)
-        # self.scroll.setFixedHeight(400)
 
         self.setWidgetResizable(True)
         self.setWidget(self.scroll)

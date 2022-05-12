@@ -3,12 +3,12 @@ from __future__ import annotations
 import random
 from typing import List, Optional
 
-from InputData.resource.digit_value import Limits
 from InputData.mvc.Model.line_segment import LineSegment
 from InputData.mvc.Model.point import Point
 from InputData.mvc.Model.size import Size
 from InputData.mvc.Model.split import Split
 from InputData.mvc.Model.surface import Surface, get_square_surface
+from res.strings import Limits
 from utils.file import dict_from_json
 from utils.geometry.angle_line import intersection_segment_dot
 from utils.geometry.calc_offset import calc_offset
@@ -20,22 +20,23 @@ from utils.observer import Subject
 from utils.recursive_extraction_of_list import recursive_extraction
 
 
-def split_shape_with_start_param(cur_shape: Shape, x_off, y_off) -> (Shape, Shape):
-    cur_shape.split_parts = a_shape, b_shape = [Shape(cur_shape.size), Shape(cur_shape.size)]
+def similar_color(color: (int, int, int)) -> (int, int, int):
+    r, g, b = color
+    ceil: () = lambda i, m: sorted([0, i, m])[1]
+    return (ceil(int((i + 0.5 * i * (random.random() - 0.5))), 255) for i in [r, g, b])
+
+
+def split_shape_with_start_param(cur_shape: Lithology, x_off, y_off) -> (Lithology, Lithology):
+    cur_shape.split_parts = a_shape, b_shape = [Lithology(cur_shape.size),
+                                                Lithology(cur_shape.size)]
     a_shape.sub_name = cur_shape.sub_name + '_a'
     b_shape.sub_name = cur_shape.sub_name + '_b'
 
-    a_shape.x_offset = cur_shape.x_offset + x_off
-    a_shape.y_offset = cur_shape.y_offset + y_off
-    b_shape.x_offset = cur_shape.x_offset + x_off
-    b_shape.y_offset = cur_shape.y_offset + y_off
+    b_shape.x_offset = a_shape.x_offset = cur_shape.x_offset + x_off
+    b_shape.y_offset = a_shape.y_offset = cur_shape.y_offset + y_off
 
-    r, g, b = cur_shape.color
-    ceil: () = lambda i, m: sorted([0, i, m])[1]
-    similar_color: () = lambda val: ceil(int((val + 0.5 * val * (random.random() - 0.5))), 255)
-
-    a_shape.color = (similar_color(i) for i in [r, g, b])
-    b_shape.color = (similar_color(i) for i in [r, g, b])
+    a_shape.color = similar_color(cur_shape.color)
+    b_shape.color = similar_color(cur_shape.color)
 
     a_shape.layers.pop()
     b_shape.layers.pop()
@@ -43,13 +44,13 @@ def split_shape_with_start_param(cur_shape: Shape, x_off, y_off) -> (Shape, Shap
 
 
 # alpha - прозрачность от 0 до 1
-class ShapeProperty(Subject):
+class LithologyProperty(Subject):
     __slots__ = 'size', 'visible', '_alpha', 'sub_name', '_priority', '_color', 'name', \
                 'x_offset', 'y_offset', 'layers', 'split_shapes', \
                 'parts_property', 'presence_intermediate_layers', '_filler', '_offset'
 
     def __init__(self, size: Size):
-        super(ShapeProperty, self).__init__()
+        super(LithologyProperty, self).__init__()
         self._filler = False
         self._offset, self.x_offset, self.y_offset = 0, 0, 0
         self.visible, self._alpha, self._priority = True, 0.9, 100
@@ -61,7 +62,7 @@ class ShapeProperty(Subject):
         self.size = size
 
         self.parts_property = {}  # name: ShapeProperty
-        self.split_shapes: [Shape] = []
+        self.split_shapes: [Lithology] = []
 
         self.layers: List[Surface] = list()
 
@@ -130,7 +131,7 @@ class ShapeProperty(Subject):
 
     def get_as_dict(self) -> dict:
         my_dict = {}
-        this_class = ShapeProperty
+        this_class = LithologyProperty
         for slot in this_class.__slots__:
             my_dict[slot] = recursive_extraction(getattr(self, slot))
         return my_dict
@@ -144,7 +145,7 @@ class ShapeProperty(Subject):
                 self.parts_property = {}
                 for part_name in data_dict[name_property]:
                     load_dict = data_dict[name_property][part_name]
-                    self.parts_property[part_name] = Shape(size=self.size, load_dict=load_dict)
+                    self.parts_property[part_name] = Lithology(size=self.size, load_dict=load_dict)
             else:
                 if hasattr(self, name_property):
                     if hasattr(self.__getattribute__(name_property), 'load_from_dict'):
@@ -155,7 +156,7 @@ class ShapeProperty(Subject):
         self.notify()
 
 
-class Shape(ShapeProperty):
+class Lithology(LithologyProperty):
     def __init__(self, size: Size, path: str = None, load_dict=None) -> None:
         super().__init__(size)
         self.add_layer(Surface(size=self.size, z=0))
@@ -165,7 +166,7 @@ class Shape(ShapeProperty):
         if load_dict:
             self.load_from_dict(load_dict)
 
-    def __add_offset_x_y(self, shape: Shape):
+    def __add_offset_x_y(self, shape: Lithology):
         p_prop, a_name = self.parts_property, shape.sub_name
         a_offset = p_prop.get(a_name).offset if p_prop.get(a_name) is not None else 0
         if len(shape.layers):
@@ -174,7 +175,7 @@ class Shape(ShapeProperty):
             lay.x = [x + a_offset * shape.x_offset for x in lay.x]
             lay.y = [y + a_offset * shape.y_offset for y in lay.y]
 
-    def __prepare_layer_for_split(self, lay_main, a_shape: Shape, b_shape: Shape) -> \
+    def __prepare_layer_for_split(self, lay_main, a_shape: Lithology, b_shape: Lithology) -> \
             (Surface, Surface):
         a_shape.layers.append(lay_main.get_copy())
         b_shape.layers.append(lay_main.get_copy())
@@ -185,7 +186,7 @@ class Shape(ShapeProperty):
 
         return lay_a, lay_b
 
-    def __shapes_set_offsets(self, shapes: [Shape]):
+    def __shapes_set_offsets(self, shapes: [Lithology]):
         for shape in shapes:
             self.__add_offset_x_y(shape)
             self.add_part_property(shape)
@@ -205,7 +206,7 @@ class Shape(ShapeProperty):
         b_x, b_y = b_x + (x_off * level), b_y + (y_off * level)
         old_split_level = LineSegment(Point(a_x, a_y), Point(b_x, b_y))
 
-        scale = Limits.BASEPLOTSCALE
+        scale = Limits.BASE_PLOT_SCALE
         a_polygon, b_polygon, split_level = split_square(rectangle(scale, scale), old_split_level)
 
         x1, x2 = old_split_level.a.x, old_split_level.b.x
@@ -220,7 +221,7 @@ class Shape(ShapeProperty):
     def add_layer(self, layer: Surface = None) -> Surface:
         return self.insert_layer(len(self.layers), layer)
 
-    def add_part_property(self, shape: Shape):
+    def add_part_property(self, shape: Lithology):
         if shape == self:
             return
 
@@ -302,7 +303,7 @@ class Shape(ShapeProperty):
             self.layers.insert(index, layer)
 
         elif index >= len(self.layers):
-            if [lay for lay in self.layers if lay.z >= Limits.MAXHEIGHT]:
+            if [lay for lay in self.layers if lay.z >= Limits.MAX_HEIGHT]:
                 return None
             layer.z = layer.z if layer.z > 0 else self.layers[-1].z + 1 if self.layers else 0
             self.layers.append(layer)
@@ -312,7 +313,7 @@ class Shape(ShapeProperty):
         return layer
 
     def load_from_dict(self, data_dict: dict):
-        super(Shape, self).load_from_dict(data_dict)
+        super(Lithology, self).load_from_dict(data_dict)
         if self.presence_intermediate_layers:
             self.calc_intermediate_layers()
 
@@ -346,11 +347,11 @@ class Shape(ShapeProperty):
         self.layers = sorted(self.layers, key=lambda lay: lay.z)
         return self.layers
 
-    def splitting_shape(self, splits: [Split]) -> [Shape]:
+    def splitting_shape(self, splits: [Split]) -> [Lithology]:
         if self.filler:
             return [self]
 
-        local_splits = [split.scale_split(Limits.BASEPLOTSCALE) for split in
+        local_splits = [split.scale_split(Limits.BASE_PLOT_SCALE) for split in
                         [split for split in splits if not split.line.is_empty()]]
 
         self.split_shapes = [self]
@@ -421,4 +422,4 @@ class Shape(ShapeProperty):
 
     def get_as_dict(self) -> dict:
         self.delete_secondary_surface()
-        return super(Shape, self).get_as_dict()
+        return super(Lithology, self).get_as_dict()

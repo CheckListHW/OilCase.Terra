@@ -6,7 +6,7 @@ from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QHBoxLayout
 
 from InputData.mvc.View.shapes_edit_view import ShapeEditWindow
-from InputData.resource.strings import main_icon
+from res.strings import main_icon
 from InputLogs.mvc.View.input_log_view import InputLogView
 from utils.file import FileEdit
 from utils.log.log_file import print_log
@@ -28,8 +28,8 @@ def console_excepthook(exc_type, exc_value, exc_tb):
 class InputDataLogs(QWidget):
     def __init__(self):
         super(InputDataLogs, self).__init__()
-        # self.file_edit = FileEdit('C:/Users/KosachevIV/PycharmProjects/Input/Projects/P2.oilcase')
-        self.file_edit = FileEdit()
+        self.file_edit = FileEdit('C:/Users/KosachevIV/PycharmProjects/Input/Projects/P1.oilcase')
+        # self.file_edit = FileEdit()
         self.data_window = ShapeEditWindow(file_edit=self.file_edit)
         self.log_window = InputLogView(file_edit=self.file_edit)
 

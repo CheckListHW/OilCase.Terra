@@ -3,11 +3,11 @@ from os import environ
 
 from PyQt5 import uic
 from PyQt5.QtGui import QIcon
-from PyQt5.QtWidgets import QMainWindow, QFrame, QHBoxLayout, QLabel, QSpinBox, QPushButton
+from PyQt5.QtWidgets import QMainWindow, QLabel, QSpinBox, QPushButton
 
 from InputLogs.mvc.Model.map import Map
-from InputLogs.resourse.strings import main_icon
-from utils.create_layout import create_frame, clear_layout
+from res.strings import main_icon
+from utils.create_layout import create_frame
 
 
 class OwcEditView(QMainWindow):

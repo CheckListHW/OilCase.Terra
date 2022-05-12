@@ -1,7 +1,9 @@
 import numpy as np
 
-from InputLogs.resourse.limits import MAX_TREND_RATIO
+from res.strings import Limits
+
+MTR = Limits.MAX_TREND_RATIO
 
 
 def ceil(i: float) -> float:
-    return i if -MAX_TREND_RATIO <= i <= MAX_TREND_RATIO else np.sign(i) * MAX_TREND_RATIO
+    return i if -MTR <= i <= MTR else np.sign(i) * MTR

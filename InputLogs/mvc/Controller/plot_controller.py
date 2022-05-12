@@ -12,16 +12,18 @@ from matplotlib.ticker import MultipleLocator, AutoMinorLocator
 
 from InputLogs.mvc.Model.log_curves import Log
 from InputLogs.mvc.Model.map import Map
-from InputLogs.resourse.limits import MAX_TREND_RATIO
+from res.strings import Limits
 
 
 def draw_polygon(x: float, y: float, ax: Axes, size=1.0, color: str = None):
     int_x, int_y = int(x), int(y)
-    x1, y1 = [int_x, int_x + size, int_x + size, int_x, int_x], [int_y, int_y, int_y + size, int_y + size, int_y]
+    x1 = [int_x, int_x + size, int_x + size, int_x, int_x]
+    y1 = [int_y, int_y, int_y + size, int_y + size, int_y]
     ax.fill(x1, y1, color=color)
 
 
-def draw_bar(ax: Axes, x: float, y: float, size_x: float = None, size_y: float = None, color: str = None, alpha=1.0):
+def draw_bar(ax: Axes, x: float, y: float, size_x: float = None, size_y: float = None,
+             color: str = None, alpha=1.0):
     x1, y1 = [x, x + size_x, x + size_x, x, x], [y, y, y + size_y, y + size_y, y]
     ax.fill(x1, y1, color=color, alpha=alpha)
 
@@ -33,7 +35,8 @@ class ColorName:
     @staticmethod
     def add_color(color=None):
         if not color:
-            ColorName.colors += ["#" + ''.join([random.choice('0123456789ABCDEF') for j in range(6)])]
+            ColorName.colors += [
+                "#" + ''.join([random.choice('0123456789ABCDEF') for _ in range(6)])]
 
     @staticmethod
     def get_color(name: str) -> str:
@@ -88,7 +91,7 @@ class PlotTrendController(PlotController):
 
     def draw_trend(self, log: Log):
         self.clear_plot()
-        self.ax.set_xlim(-MAX_TREND_RATIO, MAX_TREND_RATIO)
+        self.ax.set_xlim(-Limits.MAX_TREND_RATIO, Limits.MAX_TREND_RATIO)
         self.ax.set_ylim(0, 1)
 
         x, y = [x for x, _ in log.trend], [y for _, y in log.trend]
@@ -141,7 +144,8 @@ class PlotMapController(PlotController):
         self.plot_prepare(data_map.max_x, data_map.max_y)
         visible_names = data_map.visible_names
         names = []
-        for x1, y1 in [(x1, y1) for x1 in range(data_map.max_x + 1) for y1 in range(data_map.max_y + 1)]:
+        for x1, y1 in [(x1, y1) for x1 in range(data_map.max_x + 1) for y1 in
+                       range(data_map.max_y + 1)]:
             for col in data_map.get_column(x1, y1):
                 name = col['name']
                 names.append(name)
@@ -171,9 +175,7 @@ class PlotLogController(PlotController):
         if col_interval:
             x = [a for b in [x for x, _, _ in col_interval.intervals] for a in b]
             y = [a for b in [y for _, _, y in col_interval.intervals] for a in b]
-            if len(x) != len(y):
-                print(len(x), len(y))
-                print([y for y in col_interval.intervals])
+            print(len(x), len(y), [y for y in col_interval.intervals]) if len(x) != len(y) else 0
             self.ax.plot(x, y, color='black')
 
             min_axes_x, max_axes_x, pre_max_y = col_interval.min, col_interval.max, 0
@@ -181,7 +183,8 @@ class PlotLogController(PlotController):
             for x, name, y in col_interval.intervals:
                 max_y, min_y, color = max(y), min(y), ColorName.get_color(name)
                 connect_to_pre_interval = 1 if min_y > pre_max_y else 0
-                draw_bar(self.ax, min_axes_x, min_y - connect_to_pre_interval, size_x=max_axes_x - min_axes_x,
+                draw_bar(self.ax, min_axes_x, min_y - connect_to_pre_interval,
+                         size_x=max_axes_x - min_axes_x,
                          size_y=max_y - min_y + connect_to_pre_interval, color=color, alpha=0.2)
 
                 pre_max_y = max_y
