@@ -13,7 +13,8 @@ def realistic_transition(y1: [float], y2: [float]) -> ([float], [float]):
 
     drop_point_per = 0.1 * (max(y1max, y2max) - min(y1min, y2min)) / max(y1max - y1min, y2max - y2min)
     save_point_per = 1 - drop_point_per if drop_point_per < 0.5 else 0.5
-    y_a, y_b = list(Stretch.stretch_curve(y1, save_point_per)), list(Stretch.stretch_curve(y2, save_point_per))
+    y_a = list(Stretch.stretch_curve(y1, save_point_per))
+    y_b = list(Stretch.stretch_curve(y2, save_point_per))
 
     average, start_value = y_b[0] - y_a[-1], y_a[-1]
     len_dist = len(y1) + len(y2) - len(y_a) - len(y_b) + 1

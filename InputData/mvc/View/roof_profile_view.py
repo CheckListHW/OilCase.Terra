@@ -2,8 +2,8 @@ import os
 from functools import partial
 
 from PyQt5 import uic
-from PyQt5.QtGui import QIcon
-from PyQt5.QtWidgets import QMainWindow, QSpinBox
+from PyQt5.QtGui import QIcon, QKeySequence
+from PyQt5.QtWidgets import QMainWindow, QSpinBox, QShortcut
 
 from InputData.mvc.Controller.edit_plot_modes import ModeStatus
 from InputData.mvc.Controller.qt_matplotlib_connector import EditorRoofProfileController
@@ -23,11 +23,12 @@ class RoofProfileEditWindow(QMainWindow):
         self.editor = EditorRoofProfileController(lithological_model=lithological_model,
                                                   parent=self.draw_polygon_frame)
 
-        self.button_connect()
+        self.handlers()
+        self.set_default_value()
         self.editor.update_plot()
         self.addDot.click()
 
-    def button_connect(self):
+    def handlers(self):
         self.addDot.clicked.connect(lambda: self.change_mode(ModeStatus.AddDot))
         self.moveDot.clicked.connect(lambda: self.change_mode(ModeStatus.MoveDot))
         self.deleteDot.clicked.connect(lambda: self.change_mode(ModeStatus.DeleteDot))
@@ -44,6 +45,13 @@ class RoofProfileEditWindow(QMainWindow):
             partial(self.change_high_corner_point, 'lr', self.lrCornerSpinBox))
         self.urCornerSpinBox.editingFinished.connect(
             partial(self.change_high_corner_point, 'ur', self.urCornerSpinBox))
+
+    def set_default_value(self):
+        corners = self.lithological_model.roof_profile.values_corner_points
+        self.llCornerSpinBox.setValue(corners['ll'])
+        self.ulCornerSpinBox.setValue(corners['ul'])
+        self.lrCornerSpinBox.setValue(corners['lr'])
+        self.urCornerSpinBox.setValue(corners['ur'])
 
     def change_high_corner_point(self, corner: str, spinbox: QSpinBox):
         if self.lithological_model.roof_profile.values_corner_points.get(corner) is not None:

@@ -26,7 +26,7 @@ class EditSurface:
 
     def __init__(self, surf: Optional[Surface], fig=None, ax=None):
         self.surface = surf
-        self.grid_off, self.line_dot_index, self.nearest_dot_index = False, 999, 0
+        self.grid_off, self.line_dot_index, self.nearest_dot_index = False, 999, None
         self.fig = fig if fig else plt.figure()
         self.ax = ax if ax else self.fig.add_subplot(111)
 
@@ -243,4 +243,5 @@ class EditRoofProfileSurface(EditSurface):
             fig = plt.figure()
             ax = fig.add_subplot(projection='3d')
             ax.plot_wireframe(grid_x, grid_y, grid_z)
+            ax.invert_zaxis()
             plt.show()

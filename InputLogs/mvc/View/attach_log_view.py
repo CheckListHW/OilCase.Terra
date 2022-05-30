@@ -1,16 +1,19 @@
 from functools import partial
 from os import environ
+from threading import Thread
 
 from PyQt5 import uic
 from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QIcon
-from PyQt5.QtWidgets import QMainWindow, QLabel, QCheckBox, QPushButton, QWidget, QHBoxLayout
+from PyQt5.QtGui import QIcon, QTextCursor, QCursor
+from PyQt5.QtWidgets import QMainWindow, QLabel, QCheckBox, QPushButton, QWidget, QHBoxLayout, \
+    QScrollArea, QFrame
 
 from InputLogs.mvc.Model.map import Map
 from InputLogs.mvc.Model.map_property import cut_along
 from InputLogs.mvc.View.list_scroll_widget import ListScrollWidgets
 from res.strings import main_icon
 from utils.create_layout import create_frame, clear_layout
+from utils.pyqt_mods.restore_scroll_position import restore_position_scroll
 
 
 class AttachLogView(QMainWindow):
@@ -19,6 +22,8 @@ class AttachLogView(QMainWindow):
         uic.loadUi(environ['project'] + '/ui/attach_log_window.ui', self)
 
         self.setWindowIcon(QIcon(main_icon()))
+
+        self.ind = 0
 
         self.data_map = data_map
         self.attach_layers = set([])
@@ -42,6 +47,8 @@ class AttachLogView(QMainWindow):
     def create_frames_info(self):
         clear_layout(self.infoFrame.layout())
         list_scroll = ListScrollWidgets(self.infoFrame)
+        list_scroll.add_scroll([QLabel(name.replace('|', ' '))
+                                for name in sorted(['All_logs'] + self.data_map.main_logs_name())])
 
         names = list({lay_name for lay_name, log_name in
                       sorted(self.data_map.attach_list(), key=lambda i: i[0])})
@@ -65,7 +72,9 @@ class AttachLogView(QMainWindow):
 
             name_lbl = QLabel(main_lay_name.replace('|', ' '))
             name_lbl.setAlignment(Qt.AlignCenter)
-            widgets.append(name_lbl)
+
+            widgets = {name: QFrame(self) for name in self.data_map.main_logs_name()}
+            widgets['A'] = name_lbl
 
             for lay_name, log_name in sorted(self.data_map.attach_list(), key=lambda i: i[1]):
                 if (not get_main_name(lay_name).__contains__(main_lay_name)) \
@@ -83,21 +92,25 @@ class AttachLogView(QMainWindow):
                 del_btn.clicked.connect(partial(self.detach_log_list, detach_list))
 
                 lbl = QLabel(f"{cut_along(log_name, '|').replace('|', ' ')}")
-                lbl_sub = QLabel(f"{log_name[log_name.index('|'):].replace('|', ' ')}")
-                lbl_sub.setStyleSheet("color:rgb(150, 150, 150);")
 
-                w = QWidget(self)
-                w.setToolTip(f'{log_name if log is None else log.get_text()}')
-                w.setLayout(QHBoxLayout(w))
-                w.layout().addWidget(lbl)
-                w.layout().addWidget(lbl_sub)
-                w.layout().addWidget(del_btn)
-                w.layout().addStretch()
-                widgets.append(w)
+                w: QFrame = widgets[lbl.text()]
+                if w.children():
+                    w.layout().addWidget(del_btn)
+                    del_btn.setToolTip(f'{log_name if log is None else log.get_text()}')
+                else:
+                    w.setLayout(QHBoxLayout(w))
+                    w.setToolTip(f'{log_name if log is None else log.get_text()}')
+                    w.layout().addWidget(lbl)
+                    w.layout().addWidget(del_btn)
+                    w.setFrameShadow(2)
 
-            list_scroll.add_scroll(widgets)
-        list_scroll.add_scroll([QLabel(name.replace('|', ' '))
-                                for name in sorted(['All_logs'] + self.data_map.main_logs_name())])
+            list_scroll.add_scroll(widgets[k] for k in sorted(widgets.keys()))
+
+
+        if hasattr(self, 'frames_info'):
+            restore_position_scroll(list_scroll, self.frames_info.horizontalScrollBar().value(),
+                                    self.frames_info.verticalScrollBar().value())
+        self.frames_info = list_scroll
         self.update()
 
     def create_frames_layers(self):
@@ -139,6 +152,10 @@ class AttachLogView(QMainWindow):
 
             list_scroll.add_scroll(widgets)
 
+        if hasattr(self, 'frames_info'):
+            restore_position_scroll(list_scroll, self.frames_logs.horizontalScrollBar().value())
+        self.frames_logs = list_scroll
+
     def add_logs(self, state: (), name: str):
         if state():
             self.attach_logs.add(name)
@@ -154,10 +171,10 @@ class AttachLogView(QMainWindow):
     def detach_log_list(self, detach_list: [(str, str)]):
         for log_name, lay_name in detach_list:
             self.detach_log(log_name, lay_name)
+        self.create_frames_info()
 
     def detach_log(self, lay_name: str, log_name: str):
         self.data_map.detach_log_to_layer(log_name, lay_name)
-        self.create_frames_info()
 
     def update(self):
         self.create_frames_logs()

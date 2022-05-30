@@ -1,5 +1,4 @@
 import os
-from typing import Final
 
 
 class MetaConst(type):
@@ -15,67 +14,75 @@ def main_icon() -> str:
     return os.environ['project'] + '/res/pictures/InputLogo.png'
 
 
+special_logs_name = ['index|', 'HeightAboveFWL|', 'old_index|']
+default_logs_name = ['SeismicTraces']
+
+
 class Limits(Const):
-    MAX_TREND_RATIO: Final = 1
-    MAX_HEIGHT: Final = 500
-    MIN_HEIGHT: Final = 0
-    WIDTH: Final = 25
-    LENGTH: Final = 25
-    BASE_PLOT_SCALE: Final = 25
+    MAX_TREND_RATIO = 1
+    MAX_HEIGHT = 500
+    MIN_HEIGHT = 0
+    WIDTH = 25
+    LENGTH = 25
+    BASE_PLOT_SCALE = 25
 
 
 class TitleName:
-    RoofExportDialog: Final = 'Roof export'
-    RoofProfileEditWindow: Final = 'Roof profile'
-    ShapeEditWindow: Final = 'InputData'
-    SplitEditWindow: Final = 'Split'
-    ViewingLayersWindow: Final = 'Choose surface'
-    SurfaceEditWindow: Final = 'Surface'
-    InputLogView: Final = 'InputLogs'
+    RoofExportDialog = 'Roof export'
+    RoofProfileEditWindow = 'Roof profile'
+    ShapeEditWindow = 'InputData'
+    SplitEditWindow = 'Split'
+    ViewingLayersWindow = 'Choose surface'
+    SurfaceEditWindow = 'Surface'
+    InputLogView = 'InputLogs'
+
+
+class SelectionMessage:
+    UpdateOrCreate = 'Вы хотитие добавить новую кривую или обновить старую'
 
 
 class ErrorMessage(Const):
-    MinMaxValid: Final = 'Min should be less than max'
-    EmptyName: Final = 'The name cannot be empty'
+    MinMaxValid = 'Min should be less than max'
+    EmptyName = 'The name cannot be empty'
 
 
 class Tips(Const):
-    SIMPLIFY_BUTTON: Final = "Раставляет точки по периметру линии \n" \
-                            "равно удаленно друг от друга"
+    SIMPLIFY_BUTTON = "Раставляет точки по периметру линии \n" \
+                      "равно удаленно друг от друга"
 
-    CreateWaterLog: Final = "Нужно выбрать если кривая будет применяться к Водной части фации"
+    CreateWaterLog = "Нужно выбрать если кривая будет применяться к Водной части фации"
 
-    CreateOilLog: Final = "Нужно выбрать если кривая будет применяться к Нефтяной части фации"
+    CreateOilLog = "Нужно выбрать если кривая будет применяться к Нефтяной части фации"
 
-    CreateLog: Final = "Можно добавить два типа кривых:\n" \
-                       "Первый тип - задаеться минимумом и максимумом.\n" \
-                       "В нем точки для кривой будут генерироваться " \
-                       "рандомно в заданом диапазоне." \
-                       "\n\n" \
-                       "Второй тип - вычисляемая кривая она вычисляеться на основе кривой(кривых)" \
-                       " первого типа и заданного уравнения"
+    CreateLog = "Можно добавить два типа кривых:\n" \
+                "Первый тип - задаеться минимумом и максимумом.\n" \
+                "В нем точки для кривой будут генерироваться " \
+                "рандомно в заданом диапазоне." \
+                "\n\n" \
+                "Второй тип - вычисляемая кривая она вычисляеться на основе кривой(кривых)" \
+                " первого типа и заданного уравнения"
 
-    CreateNameLog: Final = 'Обозначение кривой состоит из имени,\n' \
-                           'приндлежности к воде или нефти и приндлежности к фации'
+    CreateNameLog = 'Обозначение кривой состоит из имени,\n' \
+                    'приндлежности к воде или нефти и приндлежности к фации'
 
-    CreateCalcLog: Final = 'В выражении можно использовать следующие знаки:' \
-                           ' .,+,-.*./,(,),**. ** - степень.\n' \
-                           'Пример - ({y1|}+{y2|}-{y|Clay|W|}*{y3|}/2)*1.5'
+    CreateCalcLog = 'В выражении можно использовать следующие знаки:' \
+                    ' .,+,-.*./,(,),**. ** - степень.\n' \
+                    'Пример - ({y1|}+{y2|}-{y|Clay|W|}*{y3|}/2)*1.5'
 
-    CurvesVarLog: Final = 'Выбирите чтобы добавить в выражение переменную'
+    CurvesVarLog = 'Выбирите чтобы добавить в выражение переменную'
 
-    CurvesAddCalculatedCurve: Final = 'Добавить кривую Calculated Curve'
+    CurvesAddCalculatedCurve = 'Добавить кривую Calculated Curve'
 
-    CurvesAddRangeCurve: Final = 'Добавить кривую Range Curve'
+    CurvesAddRangeCurve = 'Добавить кривую Range Curve'
 
-    ChooseLayer: Final = 'Изменить видимые слои'
+    ChooseLayer = 'Изменить видимые слои'
 
-    AddLogWindow: Final = 'Создать кривые'
+    AddLogWindow = 'Создать кривые'
 
-    CreateCoreSampleWindow: Final = 'Добавить кривые имитирующие керн'
+    CreateCoreSampleWindow = 'Добавить кривые имитирующие керн'
 
-    CreateOWCWindow: Final = 'Указать ВНК для фаций'
+    CreateOWCWindow = 'Указать ВНК для фаций'
 
-    AttachLogWindow: Final = 'Связать кривые и фации'
+    AttachLogWindow = 'Связать кривые и фации'
 
-    LogSelect: Final = 'Изменить отображаемую кривую'
+    LogSelect = 'Изменить отображаемую кривую'

@@ -1,8 +1,8 @@
 from typing import Optional
 
 
-def nearest_dot_index(dots_x, dots_y, x, y) -> Optional[int]:
-    if len(dots_x) < 1:
+def nearest_dot_index(dots_x: [float], dots_y: [float], x: float, y: float) -> Optional[int]:
+    if len(dots_x) < 1 or x is None or x is None:
         return None
 
     current_distance = ((dots_x[0] - x) ** 2 + (dots_y[0] - y) ** 2) ** 0.5

@@ -172,27 +172,32 @@ class PlotLogController(PlotController):
 
         col_interval = data_map.get_column_curve(self.x, self.y)
 
-        if col_interval:
-            x = [a for b in [x for x, _, _ in col_interval.intervals] for a in b]
-            y = [a for b in [y for _, _, y in col_interval.intervals] for a in b]
-            print(len(x), len(y), [y for y in col_interval.intervals]) if len(x) != len(y) else 0
-            self.ax.plot(x, y, color='black')
+        if not col_interval:
+           return None
+        if not col_interval.intervals:
+            return None
 
-            min_axes_x, max_axes_x, pre_max_y = col_interval.min, col_interval.max, 0
+        x = [a for b in [x for x, _, _ in col_interval.intervals] for a in b]
+        y = [a for b in [y for _, _, y in col_interval.intervals] for a in b]
+        print(len(x), len(y), [y for y in col_interval.intervals]) if len(x) != len(y) else 0
 
-            for x, name, y in col_interval.intervals:
-                max_y, min_y, color = max(y), min(y), ColorName.get_color(name)
-                connect_to_pre_interval = 1 if min_y > pre_max_y else 0
-                draw_bar(self.ax, min_axes_x, min_y - connect_to_pre_interval,
-                         size_x=max_axes_x - min_axes_x,
-                         size_y=max_y - min_y + connect_to_pre_interval, color=color, alpha=0.2)
+        self.ax.plot(x, y, color='black')
 
-                pre_max_y = max_y
+        min_axes_x, max_axes_x, pre_max_y = col_interval.min, col_interval.max, 0
 
-            self.ax.set_xlim(min_axes_x, max_axes_x)
+        for x, name, y in col_interval.intervals:
+            max_y, min_y, color = max(y), min(y), ColorName.get_color(name)
+            connect_to_pre_interval = 1 if min_y > pre_max_y else 0
+            draw_bar(self.ax, min_axes_x, min_y - connect_to_pre_interval,
+                     size_x=max_axes_x - min_axes_x,
+                     size_y=max_y - min_y + connect_to_pre_interval, color=color, alpha=0.2)
 
-            curve_min = min([min(y) for _, _, y in col_interval.intervals])
-            curve_max = max([max(y) for _, _, y in col_interval.intervals])
-            self.ax.set_ylim(curve_min, curve_max)
-            self.ax.invert_yaxis()
+            pre_max_y = max_y
+
+        self.ax.set_xlim(min_axes_x, max_axes_x)
+
+        curve_min = min([min(y) for _, _, y in col_interval.intervals])
+        curve_max = max([max(y) for _, _, y in col_interval.intervals])
+        self.ax.set_ylim(curve_min, curve_max)
+        self.ax.invert_yaxis()
         self.draw()

@@ -3,7 +3,7 @@ import os
 import random
 from os import getcwd
 from os.path import isfile
-from typing import Final, Optional
+from typing import Optional
 
 import pandas as pd
 from PyQt5.QtWidgets import QFileDialog, QInputDialog, QMessageBox
@@ -53,9 +53,9 @@ def save_dict_as_json(data: dict, path: str = os.getcwd(),
 
 class FileEdit:
     # Messages
-    create_project_default: Final = 'Введите название проекта:'
-    create_file_default: Final = 'Введите название файла:'
-    create_file_error: Final = 'Не удалось создать файл,  \nфайл с таким именем уже существует'
+    create_project_default = 'Введите название проекта:'
+    create_file_default = 'Введите название файла:'
+    create_file_error = 'Не удалось создать файл,  \nфайл с таким именем уже существует'
     data_log = 'log.log'
     data_model_name = 'data.model'
     data_polygon_model = 'polygon.model'
@@ -120,13 +120,14 @@ class FileEdit:
         if not message:
             message = self.create_file_default
         filename, ok = QInputDialog.getText(None, 'Input Dialog', str(message)) \
-                           if not filename else filename, True
+                           if not filename else (filename, True)
 
         if ok and filename and filename != '':
             path = QFileDialog.getExistingDirectory(None, getcwd())
-
-            return f'{path}/{filename}' if filename.__contains__('.') or extension is None else \
-                f'{path}/{filename}{"." + extension.replace(".", "")}'
+            if filename.__contains__('.') or extension is None:
+                return f'{path}/{filename}'
+            else:
+                return f'{path}/{filename}{"." + extension.replace(".", "")}'
 
         return None
 

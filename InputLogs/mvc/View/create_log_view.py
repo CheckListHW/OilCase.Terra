@@ -3,22 +3,26 @@ from os import environ
 
 from PyQt5 import uic, QtGui
 from PyQt5.QtCore import QRegExp
-from PyQt5.QtGui import QRegExpValidator
-from PyQt5.QtWidgets import QMainWindow, QPushButton, QLabel, QRadioButton
+from PyQt5.QtGui import QRegExpValidator, QIcon
+from PyQt5.QtWidgets import QMainWindow, QPushButton, QLabel, QRadioButton, QComboBox, QDialog
 
 from InputLogs.mvc.Model.log_curves import Log, ExpressionLog
 from InputLogs.mvc.Model.map import Map
+from InputLogs.mvc.Model.map_property import cut_along
 from InputLogs.mvc.View.help_veiws import LogCreateHelp
 from InputLogs.mvc.View.trend_view import TrendView
-from res.strings import ErrorMessage, Tips
-from utils.file import FileEdit, mass_from_xlsx
+from res.strings import ErrorMessage, Tips, SelectionMessage, special_logs_name
 from utils.create_layout import create_frame, clear_layout
+from utils.file import FileEdit, mass_from_xlsx
+from utils.pyqt_mods.clicked_label import ClickableLabel
+from utils.pyqt_mods.selection_window import SelectionWindow
 
 
 class CreateLog(QMainWindow):
     def __init__(self, data_map: Map):
         super(CreateLog, self).__init__()
         uic.loadUi(environ['project'] + '/ui/create_log_window.ui', self)
+        self.setWindowIcon(QIcon(environ['project'] + 'res/pictures/InputLogo.png'))
         self.data_map = data_map
         self.oil_water_name = ''
         self.handlers()
@@ -28,6 +32,28 @@ class CreateLog(QMainWindow):
         self.excelFrame.hide()
         self.rangeFrame.hide()
         self.calcFrame.hide()
+
+    def handlers(self):
+        self.actionMain.triggered.connect(self.help_show)
+
+        self.chooseLogFile.clicked.connect(self.choose_log_from_xlsx)
+        self.oilCurveCheckBox.clicked.connect(partial(self.change_name_oil_water_type, 'O'))
+        self.waterCurveCheckBox.clicked.connect(partial(self.change_name_oil_water_type, 'W'))
+
+        self.rangeRadioButton: QRadioButton = self.rangeRadioButton
+        self.rangeRadioButton.clicked.connect(self.type_curve_change)
+        self.calculatedRadioButton.clicked.connect(self.type_curve_change)
+
+        input_validator = QRegExpValidator(QRegExp("[^| ]{1,}"), self.nameLineEdit)
+        self.nameLineEdit.setValidator(input_validator)
+
+        for name in [''] + sorted(self.data_map.main_body_names()):
+            self.layerNameComboBox.addItem(name)
+
+        self.addCalculatedButton.clicked.connect(self.add_calculated_curve)
+        self.addIntervalButton.clicked.connect(self.add_log_interval)
+
+        self.curvesNameComboBox.textActivated.connect(self.add_curves_to_formula)
 
     def add_tips(self):
         self.waterCurveCheckBox.setToolTip(Tips.CreateWaterLog)
@@ -44,28 +70,6 @@ class CreateLog(QMainWindow):
     def help_show(self):
         self.help = LogCreateHelp()
         self.help.show()
-
-    def handlers(self):
-        self.actionMain.triggered.connect(self.help_show)
-
-        self.addIntervalButton.clicked.connect(self.add_log_interval)
-        self.chooseLogFile.clicked.connect(self.choose_log_from_xlsx)
-        self.oilCurveCheckBox.clicked.connect(partial(self.change_name_oil_water_type, 'O'))
-        self.waterCurveCheckBox.clicked.connect(partial(self.change_name_oil_water_type, 'W'))
-
-        self.rangeRadioButton: QRadioButton = self.rangeRadioButton
-        self.rangeRadioButton.clicked.connect(self.type_curve_change)
-        self.calculatedRadioButton.clicked.connect(self.type_curve_change)
-
-        input_validator = QRegExpValidator(QRegExp("[^| ]{1,}"), self.nameLineEdit)
-        self.nameLineEdit.setValidator(input_validator)
-
-        for name in [''] + sorted(self.data_map.main_body_names()):
-            self.layerNameComboBox.addItem(name)
-
-        self.addCalculatedButton.clicked.connect(self.add_calculated_curve)
-
-        self.curvesNameComboBox.textActivated.connect(self.add_curves_to_formula)
 
     def type_curve_change(self):
         if self.rangeRadioButton.isChecked():
@@ -122,6 +126,26 @@ class CreateLog(QMainWindow):
         self.data_map.pop_logs(name)
         self.update()
 
+    def set_log_info(self, log: Log):
+        if log.min is not None:
+            self.minValueSpinBox.setValue(log.min)
+            self.rangeRadioButton.click()
+        if log.max is not None:
+            self.maxValueSpinBox.setValue(log.max)
+        if log.name is not None:
+            self.nameLineEdit.setText(cut_along(log.name, '|'))
+        if log.text_expression:
+            self.formulaLineEdit.setText(log.text_expression)
+            self.calculatedRadioButton.click()
+        if log.name.__contains__('|O|'):
+            self.oilCurveCheckBox.click()
+        elif log.name.__contains__('|W|'):
+            self.waterCurveCheckBox.click()
+        if log.facia != '':
+            self.layerNameComboBox.setCurrentText(log.facia)
+        else:
+            self.layerNameComboBox.setCurrentText('')
+
     def create_frames_log(self):
         widgets = []
         for log in sorted(self.data_map.all_logs, key=lambda i: i.name):
@@ -137,7 +161,9 @@ class CreateLog(QMainWindow):
                 trend_btn.clicked.connect(partial(self.open_trend_window, log))
                 widgets[-1].append(trend_btn)
 
-            widgets[-1].append(QLabel(log.get_text()))
+            qlbl = ClickableLabel(log.get_text())
+            qlbl.clicked.connect(partial(self.set_log_info, log))
+            widgets[-1].append(qlbl)
 
         create_frame(self.logsScrollArea, widgets)
 
@@ -145,9 +171,16 @@ class CreateLog(QMainWindow):
         clear_layout(self.logsScrollArea)
         self.curvesNameComboBox.clear()
 
-        for curve_name in sorted(self.data_map.main_logs_name_owc()):
+        for curve_name in sorted(self.data_map.main_logs_name_owc()) + special_logs_name:
             self.curvesNameComboBox.addItem(curve_name)
         self.create_frames_log()
+
+    def _add_calculated_curve(self):
+        options = [('Обновить старую', self.__add_calculated_curve),
+                   ('Добавить новую', self.__add_calculated_curve)]
+
+        self.selection_window = SelectionWindow(SelectionMessage.UpdateOrCreate, options)
+        self.selection_window.show()
 
     def add_calculated_curve(self):
         expr_log = ExpressionLog(self.data_map, self.formulaLineEdit.text())

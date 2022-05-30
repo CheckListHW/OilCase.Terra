@@ -45,6 +45,7 @@ class ColumnIntervals:
         if self.__min is not None:
             return self.__min
         x = [a for b in [x1 for x1, _, _ in self.intervals] for a in b]
+        x = [x1 for x1 in x if x1 is not None]
         return min(x) if x else 0
 
     @property
@@ -52,6 +53,7 @@ class ColumnIntervals:
         if self.__max is not None:
             return self.__max
         x = [a for b in [x1 for x1, _, _ in self.intervals] for a in b]
+        x = [x1 for x1 in x if x1 is not None]
         return max(x) if x else 1
 
     @property
@@ -72,8 +74,6 @@ class ColumnIntervals:
 
     def append(self, value: interval):
         self.intervals.append(value)
-        self.set_min(min(value[0]))
-        self.set_max(max(value[0]))
 
 
 class MapProperty:
@@ -263,7 +263,7 @@ class MapProperty:
         x = [v.name for v in self.get_logs(name) if v.main]
         if x:
             if self.sub_logs(x[0]):
-                return random.choice(self.sub_logs(x[0])) if x else None
+                return random.choice(self.sub_logs(x[0]))
 
     def add_logs(self, log: Log):
         self.all_logs.append(log)
@@ -297,6 +297,7 @@ class MapProperty:
                         else:
                             interval_column_w.append(
                                 {'name': body_name_w, 's': s_e['s'], 'e': s_e['e']})
+
                     return interval_column_o + interval_column_w
 
             return [{'name': last_char_is(body_name, '|'), 's': col['s'], 'e': col['e']} for col in
@@ -329,7 +330,8 @@ class MapProperty:
                 indexes = [i.get('index') for i in curves]
 
                 column = ColumnIntervals()
-                column.append([curve, name_log, indexes])
+                if curve:
+                    column.append([curve, name_log, indexes])
 
             return column
 

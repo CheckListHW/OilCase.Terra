@@ -2,11 +2,13 @@ from __future__ import annotations
 
 import random
 import re
+from itertools import groupby
 from typing import Optional, Callable
 
 import numpy as np
 from scipy.interpolate import interp1d
 
+from res.strings import special_logs_name
 from utils.ceil import ceil
 from utils.gisaug.augmentations import DropRandomPoints, Stretch
 from utils.json_in_out import JsonInOut
@@ -40,7 +42,12 @@ class Log(JsonInOut):
                 setattr(self, k, v)
 
     @property
-    def trend(self):
+    def facia(self) -> str:
+        names = self.name.replace('|O|', '').replace('|W|', '').split('|')
+        return names[1] + '|' if len(names) > 1 else ''
+
+    @property
+    def trend(self) -> [float]:
         f_trend = self.f_trend_init()
         return [(ceil(f_trend(i)), i) for i in np.arange(0, 1, 0.001)]
 
@@ -108,6 +115,8 @@ class Log(JsonInOut):
         self._x = value
 
     def get_x(self, len_x: int):
+        if self.name in special_logs_name:
+            return self._x
         if self.text_expression and self.data_map:
             e_log = ExpressionLog(self.data_map, self.text_expression)
             if e_log():
@@ -162,7 +171,11 @@ def get_variable_expression(expression: str) -> [str]:
 
 def expression_parser(expression: str) -> Optional[Callable]:
     for l_n in re.findall(r'[{].*?[}]', expression):
-        expression = expression.replace(l_n, f"c['{l_n[1:l_n.index('|')]}']")
+        try:
+            expression = expression.replace(l_n, f"c['{l_n[1:l_n.index('|')]}']")
+        except:
+            print(expression)
+            breakpoint()
     try:
         return eval(f'lambda c: {expression}')
     except SyntaxError:
@@ -176,8 +189,13 @@ class ExpressionLog:
         self.x = []
         self.text_expression = text_expression
         log_names = get_variable_expression(self.text_expression)
+        x_r = list(range(500))
+        special_logs = {s_l: Log(data_map, {'name': s_l, 'x': x_r}) for s_l in special_logs_name}
 
-        sub_logs: () = lambda name: [v for v in data_map.all_logs if v.name.split('.')[0] == name]
+        sub_logs: () = lambda name: ([v for v in data_map.all_logs if v.name.split('.')[0] == name]
+                                     if name not in special_logs_name
+                                     else [special_logs[name]])
+
         self.logs = {name: random.choice(sub_logs(name)).x for name in log_names}
 
         self.update()
@@ -216,4 +234,6 @@ def sort_expression_logs(logs: [Log]) -> [(str, str)]:
         unsorted_exps = [i for i in unsorted_exps if i not in sorted_expressions]
         if old == sorted_expressions:
             return exps
-    return [log for _, _, log in sorted_expressions]
+    y, logs_name = [], [log.name.split('|')[0] for _, _, log in sorted_expressions].__reversed__()
+    _ = [y.append(i) for i in logs_name if not y.__contains__(i)]
+    return list(y.__reversed__())

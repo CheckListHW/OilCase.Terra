@@ -1,21 +1,23 @@
-from PyQt5.QtWidgets import QHBoxLayout, QWidget, QVBoxLayout, QScrollArea
+from PyQt5.QtWidgets import QHBoxLayout, QWidget, QVBoxLayout, QScrollArea, QSizePolicy, QSpacerItem
 
 
 class ListScrollWidgets(QScrollArea):
     def __init__(self, parent: QWidget):
         super(ListScrollWidgets, self).__init__(parent)
         if self.parent().layout() is None:
-            self.parent().setLayout(QVBoxLayout(self))
+            self.parent().setLayout(QHBoxLayout(self))
 
         self.parent().layout().addWidget(self)
-        self.scroll_layout = QHBoxLayout(self)
-        self.scroll = QWidget(self)
-        self.scroll.setLayout(self.scroll_layout)
-        self.scroll.layout().setContentsMargins(0, 0, 0, 0)
-        self.scroll.layout().setSpacing(0)
-
+        self.setWidget(QWidget(self))
+        self.widget().setLayout(QHBoxLayout(self))
+        self.widget().layout().setContentsMargins(0, 0, 0, 0)
+        self.widget().layout().setSpacing(0)
         self.setWidgetResizable(True)
-        self.setWidget(self.scroll)
+
+        self.spacer = QWidget(self)
+        self.spacer.setLayout(QHBoxLayout())
+        self.spacer.layout().addStretch()
+        self.widget().layout().addWidget(self.spacer)
 
     def add_scroll(self, widgets: [QWidget]):
         widgets_frame = QWidget()
@@ -28,6 +30,7 @@ class ListScrollWidgets(QScrollArea):
         widgets_frame.layout().setContentsMargins(9, 0, 3, 0)
         widgets_frame.setFixedWidth(200)
         widgets_frame.layout().addStretch()
+        self.widget().layout().addWidget(widgets_frame)
 
-        self.scroll_layout.addWidget(widgets_frame)
-        self.scroll.layout().addStretch()
+        self.spacer.setParent(None)
+        self.widget().layout().addWidget(self.spacer)
