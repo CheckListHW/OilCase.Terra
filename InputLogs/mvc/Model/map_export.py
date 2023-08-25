@@ -178,7 +178,7 @@ def add_log_sample_in_export(data: dict, core_samples: [CoreSample], percent: fl
 
 
 def prepare_dataframe_to_save(data: dict) -> pd.DataFrame:
-    columns_name = set([a for b in [list(v.keys()) for v in data.values()] for a in b])
+    columns_name = list(set([a for b in [list(v.keys()) for v in data.values()] for a in b]))
     return pd.DataFrame([row for _, row in data.items()], columns=columns_name)
 
 

@@ -78,9 +78,9 @@ class ColumnIntervals:
 
 class MapProperty:
     __slots__ = 'columns', 'body_names', 'attach_logs', '_visible_names', 'core_samples', \
-                'interval_data', 'max_x', 'max_y', 'max_z', 'path_map', 'owc', 'export_data', \
-                'all_logs', 'export', 'percent_safe_core', 'initial_depth', 'step_depth', \
-                'settings', '__select_log', 'path_map',
+        'interval_data', 'max_x', 'max_y', 'max_z', 'path_map', 'owc', 'export_data', \
+        'all_logs', 'export', 'percent_safe_core', 'initial_depth', 'step_depth', \
+        'settings', '__select_log', 'path_map',
 
     def __init__(self, path_map: Optional[str] = None, path_log: Optional[str] = None):
         self.columns, self.interval_data = {}, {}
@@ -296,7 +296,8 @@ class MapProperty:
                                 {'name': body_name_o, 's': s_e['s'], 'e': s_e['e']})
                         else:
                             interval_column_w.append(
-                                {'name': body_name_w, 's': s_e['s'], 'e': s_e['e']})
+                                {'name': body_name_w if s_e['e'] > self.owc[body_name] else body_name_o, 's': s_e['s'],
+                                 'e': s_e['e']})
 
                     return interval_column_o + interval_column_w
 
@@ -339,6 +340,7 @@ class MapProperty:
             return None
 
         col_intervals = ColumnIntervals()
+
         sort_column = sorted(self.get_column(x, y), key=lambda i: i['s'])
 
         for name, s, e in [i.values() for i in sort_column]:

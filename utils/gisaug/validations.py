@@ -1,4 +1,4 @@
-from collections import Iterable
+from collections.abc import Iterable
 from numbers import Number
 from typing import Sized
 

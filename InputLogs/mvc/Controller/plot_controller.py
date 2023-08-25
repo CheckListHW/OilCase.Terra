@@ -173,7 +173,7 @@ class PlotLogController(PlotController):
         col_interval = data_map.get_column_curve(self.x, self.y)
 
         if not col_interval:
-           return None
+            return None
         if not col_interval.intervals:
             return None
 
@@ -198,6 +198,7 @@ class PlotLogController(PlotController):
 
         curve_min = min([min(y) for _, _, y in col_interval.intervals])
         curve_max = max([max(y) for _, _, y in col_interval.intervals])
+
         self.ax.set_ylim(curve_min, curve_max)
         self.ax.invert_yaxis()
         self.draw()
