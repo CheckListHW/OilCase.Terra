@@ -1,12 +1,10 @@
 from functools import partial
 from os import environ
-from threading import Thread
 
 from PyQt5 import uic
 from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QIcon, QTextCursor, QCursor
-from PyQt5.QtWidgets import QMainWindow, QLabel, QCheckBox, QPushButton, QWidget, QHBoxLayout, \
-    QScrollArea, QFrame
+from PyQt5.QtGui import QIcon
+from PyQt5.QtWidgets import QMainWindow, QLabel, QCheckBox, QPushButton, QWidget, QHBoxLayout, QFrame
 
 from InputLogs.mvc.Model.map import Map
 from InputLogs.mvc.Model.map_property import cut_along

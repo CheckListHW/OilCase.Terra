@@ -114,13 +114,13 @@ class SurfaceProperty:  # z - высота слоя
 
     @property
     def scalable_split(self) -> [LineSegment]:
-        scalale_splits: List[LineSegment] = []
+        scalable_splits: List[LineSegment] = []
         for split in self.splits:
             if split.a.x is not None and split.b.x is not None:
                 p_a = Point(split.a.x * self.size.x, split.a.y * self.size.y)
                 p_b = Point(split.b.x * self.size.x, split.b.y * self.size.y)
-                scalale_splits.append(LineSegment(p_a, p_b))
-        return scalale_splits
+                scalable_splits.append(LineSegment(p_a, p_b))
+        return scalable_splits
 
     def get_copy(self) -> SurfaceProperty:
         this_copy = SurfaceProperty()
